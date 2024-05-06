@@ -63,7 +63,7 @@ export const LOGIN_COMPANY = async (req: Request, res: Response, next: NextFunct
       const token = await SIGN_TOKEN({ id, status });
       return res.success({ token, company_id: company.company_id });
     } else next(res.error.NotFound('invalid nn credentials!'));
-  } else next(res.error.NotFound('invalid credentials!bbbb'));
+  } else next(res.error.NotFound('invalid credentials!'));
 };
 
 const changeCompanyPassword = async (req: Request, res: Response, next: NextFunction) => {};
