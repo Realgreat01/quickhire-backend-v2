@@ -4,7 +4,7 @@ require('dotenv').config();
 const router: Router = Router();
 export default router;
 
-import { GET_USER_DETAILS, UPDATE_USER_DETAILS } from '../controller/user/details';
+import { GET_SINGLE_USER, GET_USER_DETAILS, UPDATE_USER_DETAILS } from '../controller/user/details';
 import { GET_USER_SKILLS, UPDATE_USER_SKILLS } from '../controller/user/skills';
 
 import {
@@ -33,6 +33,7 @@ import {
 
 router.get('/', GET_USER_DETAILS);
 router.put('/', UPDATE_USER_DETAILS);
+router.put('/:id', GET_SINGLE_USER);
 
 router.get('/skills', GET_USER_SKILLS);
 router.put('/skills', UPDATE_USER_SKILLS);

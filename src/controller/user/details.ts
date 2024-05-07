@@ -11,6 +11,16 @@ export const GET_USER_DETAILS = async (req: Request, res: Response, next: NextFu
   } else next(res.error.NotFound('user not found'));
 };
 
+//
+export const GET_SINGLE_USER = async (req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.params;
+
+  const user = await UserSchema.findOne({ username: id }).select('-password');
+  if (user) {
+    return res.success(user);
+  } else next(res.error.NotFound('user not found'));
+};
+
 // SUBMIT BASIC DETAILS
 export const UPDATE_USER_DETAILS = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.user;
