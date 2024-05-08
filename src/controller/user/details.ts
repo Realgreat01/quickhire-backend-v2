@@ -25,11 +25,13 @@ export const GET_SINGLE_USER = async (req: Request, res: Response, next: NextFun
 export const UPDATE_USER_DETAILS = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.user;
   const { email, password, status, skills, education, projects, experience, ...updateData } = req.body;
-  const currentUser = await UserSchema.findByIdAndUpdate(id, updateData, {
-    new: true,
-    runValidators: true,
-  }).select('-password');
-  if (currentUser) {
+  try {
+    const currentUser = await UserSchema.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    }).select('-password');
     return res.success(currentUser, 201);
-  } else next(res.error.NotFound('user not found'));
+  } catch (error) {
+    next(res.createError(400, '', error));
+  }
 };

@@ -6,10 +6,11 @@ export const GET_USER_SKILLS = async (req: Request, res: Response, next: NextFun
   const { id } = req.user;
   const currentUser = await UserSchema.findById(id);
   if (currentUser) return res.success(currentUser.skills);
-  else next(res.error.NotFound('user not found'));
+  else next(res.error.NotFound('user not found djs'));
 };
 
 export const UPDATE_USER_SKILLS = async (req: Request, res: Response, next: NextFunction) => {
+  console.log('hello');
   const { id } = req.user;
   const currentUser = await UserSchema.findById(id);
   if (currentUser) {
@@ -20,5 +21,5 @@ export const UPDATE_USER_SKILLS = async (req: Request, res: Response, next: Next
     } catch (error) {
       next(res.createError(400, '', errorHandler(error)));
     }
-  } else res.status(402).json('user not found');
+  } else next(res.error.NotFound('user not found keh ahahHh'));
 };

@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { isEmail, isMobilePhone } from 'validator';
+import { isEmail, isMobilePhone, isURL } from 'validator';
 import { UserInterface } from '../types';
 
 import { BasicDetailSchema, NotificationSchema } from './schemas/basic-details';
@@ -8,7 +8,6 @@ import { SkillSchema } from './schemas/skills';
 import { ExperienceSchema } from './schemas/experience';
 import { EducationSchema } from './schemas/education';
 import { BlogSchema } from './schemas/blog-contents.js';
-import isURL from 'validator/lib/isURL';
 
 const UserSchema = new Schema<UserInterface>({
   email: {
@@ -63,19 +62,19 @@ const UserSchema = new Schema<UserInterface>({
   about_me: {
     type: String,
     minLength: [100, 'about should be a minimum of 100 characters'],
-    maxLength: [800, 'about should be a maximum of 800 characters'],
+    maxLength: [1200, 'about should be a maximum of 1200 characters'],
   },
   header_bio: {
     type: String,
-    default: 'Software Developer',
+    default: 'Software Developer | Technical Writer | Builder of the Universe 🌟🎉',
     minLength: [10, 'header should be a minimum of 10 characters'],
-    maxLength: [60, 'header should be a maximum of 60 characters'],
+    maxLength: [100, 'header should be a maximum of 100 characters'],
   },
   summary: {
     type: String,
     default: 'A very versatile software developer',
-    minLength: [24, 'summary should be a minimum of 24 characters'],
-    maxLength: [120, 'summary should be a maximum of 120 characters'],
+    minLength: [50, 'summary should be a minimum of 24 characters'],
+    maxLength: [300, 'summary should be a maximum of 300 characters'],
   },
   cover_letter: String,
   hobbies: [String],
@@ -160,7 +159,7 @@ const UserSchema = new Schema<UserInterface>({
     required: true,
     default: 'mid',
   },
-  rate: Number,
+  rate: { type: Number, default: 10 },
   highest_education_level: {
     type: String,
     enum: [
@@ -184,6 +183,14 @@ const UserSchema = new Schema<UserInterface>({
     default: 'remote',
   },
   availability: { type: String, default: '1 week' },
+  settings: {
+    allow_notifications: { type: Boolean, default: true },
+    portfolio_type: { type: String, enum: ['default'], default: 'default' },
+    cv_template: { type: String, enum: ['default'], default: 'default' },
+    show_summary: { type: Boolean, default: true },
+    show_education: { type: Boolean, default: true },
+    send_cover_letter: { type: Boolean, default: true },
+  },
   notifications: [NotificationSchema],
   projects: [ProjectSchema],
   experience: [ExperienceSchema],

@@ -62,7 +62,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   res.success = (data: any, message: string, code = 200) =>
     res.status(code).json(ServerResponse.success(data, message, code));
 
-  res.createError = (code: number, message = 'An error occured', data?: any) =>
+  res.createError = (code: number, message = 'An error occured', data?: object) =>
     createError(code, message, {
       ...data,
       stack: false,

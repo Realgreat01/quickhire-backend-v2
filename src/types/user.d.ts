@@ -88,6 +88,15 @@ export interface UserSkills extends Document {
   soft_skills: string[];
 }
 
+export interface Settings {
+  allow_notifications: boolean;
+  portfolio_type: 'default';
+  cv_template: 'default';
+  show_summary: boolean;
+  show_education: boolean;
+  send_cover_letter: boolean;
+}
+
 export interface UserInterface extends Document {
   email: string;
   username: string;
@@ -115,6 +124,7 @@ export interface UserInterface extends Document {
   interest_job: JobLocationType;
   availability: string;
   blogs: object[];
+  settings: Settings;
   notifications: Notification[];
   projects: Project[];
   experience: Experience[];

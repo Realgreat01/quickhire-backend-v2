@@ -1,4 +1,5 @@
 // import { SEND_USER_VERIFICATION_EMAIL } from './email-sender';
-// import { SEND_NOTIFICATION } from './firebase';
+import { FILTER_EMPTY_VALUES } from './helpers';
 import './agenda';
-// export { SEND_NOTIFICATION };
+
+export { FILTER_EMPTY_VALUES };

@@ -37,6 +37,7 @@ router.put('/:id', GET_SINGLE_USER);
 
 router.get('/skills', GET_USER_SKILLS);
 router.put('/skills', UPDATE_USER_SKILLS);
+router.post('/skills', UPDATE_USER_SKILLS);
 
 router.get('/education', GET_EDUCATION);
 router.get('/education/:id', GET_SINGLE_EDUCATION);

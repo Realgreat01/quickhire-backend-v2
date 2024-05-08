@@ -26,7 +26,7 @@ export const ExperienceSchema = new Schema<Experience>({
   },
   job_type: {
     type: String,
-    enum: ['Full-time', 'Part-time', 'Contract', 'Temporary', 'Internship'],
+    enum: ['Full-Time', 'Part-Time', 'Contract', 'Temporary', 'Internship'],
     default: 'Full-Time',
     required: true,
   },
