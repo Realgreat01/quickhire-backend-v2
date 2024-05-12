@@ -1,6 +1,6 @@
 import { model, Schema } from 'mongoose';
 import { CompanyInterface } from '../types';
-import { isEmail } from 'validator';
+import { isEmail, isMobilePhone } from 'validator';
 
 const CompanySchema = new Schema<CompanyInterface>(
   {
@@ -56,11 +56,9 @@ const CompanySchema = new Schema<CompanyInterface>(
     },
     logo: {
       type: String,
-      default: '',
     },
     cover_image: {
       type: String,
-      default: '',
     },
 
     category: {
@@ -75,7 +73,10 @@ const CompanySchema = new Schema<CompanyInterface>(
 
     parent_company: { type: String, default: null },
     incorporation_date: { type: Date, default: Date.now },
-    contact_phone: { type: String, default: '' },
+    contact_phone: {
+      type: String,
+      validate: [isMobilePhone, 'please enter a valid phone number'],
+    },
     operational_status: {
       type: String,
       lowercase: true,

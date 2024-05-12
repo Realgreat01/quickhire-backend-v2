@@ -121,7 +121,7 @@ export interface UserInterface extends Document {
   experience_level: 'entry' | 'mid' | 'senior';
   rate: number;
   highest_education_level: Education['type'];
-  interest_job: JobLocationType;
+  job_interest: JobLocationType;
   availability: string;
   blogs: object[];
   settings: Settings;

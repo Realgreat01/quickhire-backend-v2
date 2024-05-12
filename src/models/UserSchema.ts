@@ -196,7 +196,7 @@ const UserSchema = new Schema<UserInterface>(
       default: 'Bachelors',
       required: true,
     },
-    interest_job: {
+    job_interest: {
       type: String,
       lowercase: true,
       enum: ['remote', 'onsite', 'hybrid'],

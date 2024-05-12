@@ -4,23 +4,38 @@ import CloudinaryConfig from '../../config/cloudinary';
 import streamifier from 'streamifier';
 import { NextFunction, Request, Response } from 'express';
 
+// ALL USERS
+export const GET_ALL_USERS = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const users = await UserSchema.find().select('-password');
+    return res.success(users);
+  } catch (error) {
+    next(res.error.NotFound('no user found'));
+  }
+};
+
 // BASIC DETAILS
 export const GET_USER_DETAILS = async (req: Request, res: Response, next: NextFunction) => {
-  const { id } = req.user;
-  const currentUser = await UserSchema.findById(id).select('-password');
-  if (currentUser) {
+  try {
+    const { id } = req.user;
+    const currentUser = await UserSchema.findById(id).select('-password');
+
     return res.success(currentUser);
-  } else next(res.error.NotFound('user not found'));
+  } catch (error) {
+    next(res.error.NotFound('user not found'));
+  }
 };
 
 //
 export const GET_SINGLE_USER = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
 
-  const user = await UserSchema.findOne({ username: id }).select('-password');
-  if (user) {
+  try {
+    const user = await UserSchema.findOne({ username: id }).select('-password');
     return res.success(user);
-  } else next(res.error.NotFound('user not found'));
+  } catch (error) {
+    next(res.error.NotFound('user not found'));
+  }
 };
 
 // SUBMIT BASIC DETAILS

@@ -9,7 +9,7 @@ export const GET_COMPANY_JOB = async (req: Request, res: Response, next: NextFun
   try {
     const companyJob = await JobSchema.find({ posted_by: id }).populate(
       'posted_by',
-      'company_name company_location company_logo',
+      'company_name address logo company_id',
     );
     return res.success(companyJob, 201);
   } catch (error) {
@@ -22,7 +22,7 @@ export const POST_NEW_JOB = async (req: Request, res: Response, next: NextFuncti
   try {
     const newJob = await (
       await JobSchema.create({ ...req.body, posted_by: id })
-    ).populate('posted_by', 'company_name company_location company_logo company_id');
+    ).populate('posted_by', 'company_name address logo company_id');
     return res.success(newJob);
   } catch (error) {
     return res.status(500).json(errorHandler(error));
