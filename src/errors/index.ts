@@ -35,7 +35,7 @@ const errorHandler = (error: any) => {
 
   // Invalid  Mongoose Object ID Error
   if (BSONTypeError) {
-    return { error: 'Selected content has been modified' };
+    return { error: { message: 'Selected content has been modified' } };
   }
 
   // duplicate Key Error
@@ -47,9 +47,9 @@ const errorHandler = (error: any) => {
       duplicateKey[0].replaceAll('_', ' ') +
       ' already exists, use a new ' +
       duplicateKey[0].replaceAll('_', ' ');
-    return { code: 11000, message: 'DUPLICATE ERROR', error: errorObject };
+    return { code: 11000, message: 'DUPLICATE ERROR', errors: errorObject };
   }
-  return { error: { message: error?.message } };
+  return { errors: { message: error?.message } };
 };
 
 export default errorHandler;

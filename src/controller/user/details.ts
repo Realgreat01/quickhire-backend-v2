@@ -62,7 +62,6 @@ export const UPLOAD_PROFILE_PICTURE = async (req: Request, res: Response, next: 
     let cloudinaryUploadStream = CloudinaryConfig.uploader.upload_stream(options, async (error, data) => {
       if (error) next(res.error.BadRequest('unable to update user profile picture'));
       else {
-        console.log(data);
         await UserSchema.findByIdAndUpdate(id, { profile_picture: data.url });
         return res.success({ profile_picture: data.url }, 'Profile picture updated successfully !');
       }

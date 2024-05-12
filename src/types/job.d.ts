@@ -2,13 +2,14 @@ import type { Types, Document } from 'mongoose';
 import { JobLocationType, JobType, Skills } from './utils';
 
 export interface Applicant {
-  user: Types.ObjectId[];
+  user: Types.ObjectId;
   status: 'submitted' | 'received' | 'processing' | 'accepted' | 'rejected';
   cover_letter?: string;
   interview_feedback?: InterviewFeedback[];
   evaluationScore?: number | string;
   notes?: string;
   interview_dates?: Date[];
+  date_applied: Date;
 }
 
 interface ApplicationStatus {

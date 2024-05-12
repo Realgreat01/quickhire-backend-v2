@@ -10,7 +10,6 @@ export const GET_USER_SKILLS = async (req: Request, res: Response, next: NextFun
 };
 
 export const UPDATE_USER_SKILLS = async (req: Request, res: Response, next: NextFunction) => {
-  console.log('hello');
   const { id } = req.user;
   const currentUser = await UserSchema.findById(id);
   if (currentUser) {

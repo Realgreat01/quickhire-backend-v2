@@ -22,7 +22,6 @@ export const REGISTER_USER = async (req: Request, res: Response, next: NextFunct
         );
       } else return next(res.error.BadGateway());
     } catch (err) {
-      console.log(errorHandler(err));
       return next(res.createError(400, 'Error registering user', errorHandler(err)));
     }
   } else return next(res.error.BadRequest('Password must be of minimum 6 characters long!'));

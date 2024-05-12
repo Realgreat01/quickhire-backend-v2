@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import { JobSchema } from '../../models';
 import errorHandler from '../../errors';
+import { Applicant, JobInterface } from '../../types';
 
 export const GET_COMPANY_JOB = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.user;
@@ -80,7 +81,7 @@ export const GET_ALL_JOBS = async (req: Request, res: Response, next: NextFuncti
     const allJobs = await JobSchema.find()
       .populate('posted_by', 'company_name address logo company_id')
       .populate(
-        'applicants',
+        'applicants.user',
         'username email firstname lastname phone_number experience_level highest_education_level',
       );
     return res.success(allJobs);
@@ -92,7 +93,10 @@ export const GET_ALL_JOBS = async (req: Request, res: Response, next: NextFuncti
 export const GET_SINGLE_JOB = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id;
-    const requestedJob = await JobSchema.findById(id);
+    const requestedJob = await JobSchema.findById(id).populate(
+      'posted_by',
+      'company_name address logo company_id',
+    );
     return res.success(requestedJob);
   } catch (error) {
     next(res.createError(400, '', errorHandler(error)));
@@ -104,12 +108,13 @@ export const APPLY_FOR_JOB = async (req: Request, res: Response, next: NextFunct
     const userId = req.user.id;
     const jobId = req.params.id;
     const job = await JobSchema.findById(jobId);
-    if (!job) next(res.error.NotFound('Job not found'));
+    if (!job) return next(res.error.NotFound('Job not found'));
     else {
-      const isApplicant = job.applicants.some((applicant) =>
-        applicant.user.some((user) => user._id.equals(new Types.ObjectId(userId))),
+      const isApplicant = job.applicants.find((applicant: any) =>
+        applicant.user.equals(new Types.ObjectId(userId)),
       );
-      if (isApplicant) next(res.error.Forbidden('You have already applied for this job'));
+
+      if (isApplicant) return next(res.error.Forbidden('You have already applied for this job'));
 
       const appliedJob = await JobSchema.findByIdAndUpdate(
         jobId,
@@ -120,5 +125,32 @@ export const APPLY_FOR_JOB = async (req: Request, res: Response, next: NextFunct
     }
   } catch (error) {
     return next(res.createError(500, '', errorHandler(error)));
+  }
+};
+
+export const GET_APPLIED_JOBS = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.id;
+    const jobs = await JobSchema.find({ 'applicants.user': userId }).populate(
+      'posted_by',
+      'company_name address logo company_id',
+    );
+
+    const processedData: any = [];
+
+    jobs.forEach((job: JobInterface) => {
+      const { applicants, ...jobDetails } = job.toObject();
+      const currentApplicant = applicants.find(
+        (applicant: Applicant) => applicant.user.toString() === userId,
+      );
+      if (currentApplicant) {
+        jobDetails['candidate'] = currentApplicant;
+        jobDetails['applicants_count'] = applicants.length;
+        processedData.push(jobDetails);
+      }
+    });
+    return res.success(processedData);
+  } catch (error) {
+    next(res.createError(400, '', errorHandler(error)));
   }
 };

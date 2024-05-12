@@ -41,8 +41,8 @@ import {
 } from '../controller/user/projects';
 
 router.get('/', GET_USER_DETAILS);
+router.get('/user/:id', GET_SINGLE_USER);
 router.put('/', UPDATE_USER_DETAILS);
-router.put('/:id', GET_SINGLE_USER);
 
 router.get('/skills', GET_USER_SKILLS);
 router.put('/skills', UPDATE_USER_SKILLS);
