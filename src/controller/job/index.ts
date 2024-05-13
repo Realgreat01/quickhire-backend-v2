@@ -16,6 +16,16 @@ export const GET_COMPANY_JOB = async (req: Request, res: Response, next: NextFun
     next(res.createError(500, '', errorHandler(error)));
   }
 };
+export const GET_SINGLE_COMPANY_JOB = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user.id;
+  const jobId = req.params.jobId;
+  try {
+    const companyJob = await JobSchema.findOne({ posted_by: userId, _id: jobId });
+    return res.success(companyJob);
+  } catch (error) {
+    next(res.createError(500, '', errorHandler(error)));
+  }
+};
 
 export const POST_NEW_JOB = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.user;
@@ -31,7 +41,7 @@ export const POST_NEW_JOB = async (req: Request, res: Response, next: NextFuncti
 
 export const UPDATE_JOB = async (req: Request, res: Response, next: NextFunction) => {
   const userId = req.user.id;
-  const jobId = req.params.id;
+  const jobId = req.params.jobId;
   try {
     const updatedJob = await JobSchema.findOneAndUpdate({ posted_by: userId, _id: jobId }, req.body, {
       new: true,
@@ -42,18 +52,52 @@ export const UPDATE_JOB = async (req: Request, res: Response, next: NextFunction
   }
 };
 
+export const GET_JOB_APPLICANTS = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user.id; // Assuming this is the company's user ID
+  const jobId = req.params.jobId;
+
+  try {
+    const job = await JobSchema.findOne({ _id: jobId, posted_by: userId }).populate('applicants.user');
+    if (!job) return next(res.error.NotFound('job not found'));
+    else return res.success(job.applicants, 'Applicants retrieved successfully');
+  } catch (error) {
+    next(res.createError(500, '', errorHandler(error)));
+  }
+};
+
+export const GET_JOB_APPLICANT = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user.id; // Assuming this is the company's user ID
+  const jobId = req.params.jobId;
+  const applicantId = req.params.applicantId;
+
+  try {
+    const job = await JobSchema.findOne({ _id: jobId, posted_by: userId }).populate(
+      'applicants.user',
+      'email username firstname lastname profile_picture experience_level job_interest rate hightest_education_level skills ',
+    );
+    if (!job) return next(res.error.NotFound('job not found'));
+
+    const applicantIndex = job.applicants.findIndex(
+      (applicant) => applicant.user._id.toString() === applicantId,
+    );
+    if (applicantIndex === -1) return next(res.error.NotFound('Applicant not found in this job'));
+    return res.success(job.applicants[applicantIndex]);
+  } catch (error) {
+    next(res.createError(500, '', errorHandler(error)));
+  }
+};
 export const UPDATE_JOB_APPLICANT = async (req: Request, res: Response, next: NextFunction) => {
   const userId = req.user.id; // Assuming this is the company's user ID
-  const jobId = req.params.job_id;
-  const applicantId = req.params.applicant_id;
+  const jobId = req.params.jobId;
+  const applicantId = req.params.applicantId;
   const updates = req.body;
 
   try {
     const job = await JobSchema.findOne({ _id: jobId, posted_by: userId });
-    if (!job) next(res.error.NotFound('job not found'));
+    if (!job) return next(res.error.NotFound('job not found'));
     else {
       const applicantIndex = job.applicants.findIndex((user) => user.user.toString() === applicantId);
-      if (applicantIndex === -1) next(res.error.NotFound('Applicant not found in this job'));
+      if (applicantIndex === -1) return next(res.error.NotFound('Applicant not found in this job'));
       for (const key in updates) {
         job.applicants[applicantIndex][key] = updates[key];
         const updatedJob = await job.save();
@@ -67,7 +111,7 @@ export const UPDATE_JOB_APPLICANT = async (req: Request, res: Response, next: Ne
 
 export const DELETE_JOB = async (req: Request, res: Response, next: NextFunction) => {
   const userId = req.user.id;
-  const jobId = req.params.id;
+  const jobId = req.params.jobId;
   try {
     await JobSchema.findOneAndDelete({ posted_by: userId, _id: jobId });
     return res.success({ message: 'Job successfully deleted' });
@@ -92,8 +136,8 @@ export const GET_ALL_JOBS = async (req: Request, res: Response, next: NextFuncti
 
 export const GET_SINGLE_JOB = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const id = req.params.id;
-    const requestedJob = await JobSchema.findById(id).populate(
+    const jobId = req.params.jobId;
+    const requestedJob = await JobSchema.findById(jobId).populate(
       'posted_by',
       'company_name address logo company_id',
     );
@@ -106,7 +150,7 @@ export const GET_SINGLE_JOB = async (req: Request, res: Response, next: NextFunc
 export const APPLY_FOR_JOB = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.id;
-    const jobId = req.params.id;
+    const jobId = req.params.jobId;
     const job = await JobSchema.findById(jobId);
     if (!job) return next(res.error.NotFound('Job not found'));
     else {

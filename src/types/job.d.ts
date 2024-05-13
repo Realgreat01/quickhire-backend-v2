@@ -6,7 +6,7 @@ export interface Applicant {
   status: 'submitted' | 'received' | 'processing' | 'accepted' | 'rejected';
   cover_letter?: string;
   interview_feedback?: InterviewFeedback[];
-  evaluationScore?: number | string;
+  evaluation_score?: number | string;
   notes?: string;
   interview_dates?: Date[];
   date_applied: Date;
