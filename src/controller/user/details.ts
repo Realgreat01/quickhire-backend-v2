@@ -41,7 +41,7 @@ export const GET_SINGLE_USER = async (req: Request, res: Response, next: NextFun
 // SUBMIT BASIC DETAILS
 export const UPDATE_USER_DETAILS = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.user;
-  const { email, password, status, skills, education, projects, experience, ...updateData } = req.body;
+  const { email, password, status, skills, ...updateData } = req.body;
   try {
     const currentUser = await UserSchema.findByIdAndUpdate(id, updateData, {
       new: true,

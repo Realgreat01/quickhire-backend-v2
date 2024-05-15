@@ -14,9 +14,9 @@ cloudinary.config({
   secure: false,
 });
 
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
-upload.single('profile_picture');
+// const storage = multer.memoryStorage();
+// const upload = multer({ storage });
+// upload.single('profile_picture');
 const options = {
   overwrite: false,
   unique_filename: true,

@@ -21,8 +21,7 @@ import {
 
 import { IS_COMPANY, IS_USER } from '../middlewares';
 
-router.get('/jobs/', GET_ALL_JOBS);
-router.get('/jobs/:jobId', GET_SINGLE_JOB);
+
 
 router.post('/company/', IS_COMPANY, POST_NEW_JOB);
 router.get('/company/', IS_COMPANY, GET_COMPANY_JOB);
