@@ -1,7 +1,7 @@
 import { UserSchema } from '../../models';
 import errorHandler from '../../errors';
-import CloudinaryConfig from '../../config/cloudinary';
-import streamifier from 'streamifier';
+import { UPLOAD_TO_CLOUDINARY } from '../../config/cloudinary';
+
 import { NextFunction, Request, Response } from 'express';
 
 // ALL USERS
@@ -74,14 +74,11 @@ export const UPLOAD_PROFILE_PICTURE = async (req: Request, res: Response, next: 
 
   const { id } = req.user;
   try {
-    let cloudinaryUploadStream = CloudinaryConfig.uploader.upload_stream(options, async (error, data) => {
-      if (error) next(res.error.BadRequest('unable to update user profile picture'));
-      else {
-        await UserSchema.findByIdAndUpdate(id, { profile_picture: data.url });
-        return res.success({ profile_picture: data.url }, 'Profile picture updated successfully !');
-      }
-    });
-    if (req.file) streamifier.createReadStream(req.file.buffer).pipe(cloudinaryUploadStream);
+    if (req.file) {
+      const imageURL = await UPLOAD_TO_CLOUDINARY(req.file);
+      await UserSchema.findByIdAndUpdate(id, { profile_picture: imageURL });
+      return res.success({ profile_picture: imageURL }, 'Profile picture updated successfully !');
+    } else return next(res.error.BadRequest());
   } catch (error) {
     next(res.createError(500, '', errorHandler(error)));
   }

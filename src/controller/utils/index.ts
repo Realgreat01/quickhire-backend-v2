@@ -2,6 +2,7 @@ import { UserSchema, JobSchema, CompanySchema } from '../../models';
 import { NextFunction, Request, Response } from 'express';
 import errorHandler from '../../errors';
 import { IMAGE_TO_BASE64 } from '../../utils';
+import { GET_ALL_COUNTRIES, GET_CITIES_BY_STATE_AND_COUNTRY, GET_STATES_BY_COUNTRY } from '../../services';
 
 export const CONVERT_IMAGE_BASE64_URL = async (req: Request, res: Response, next: NextFunction) => {
   const image = req.body.image_url;
@@ -26,4 +27,34 @@ export const OPERATIONAL_INSIGHTS = async (req: Request, res: Response, next: Ne
       active_applications: activeJobs.length,
     });
   } catch (error) {}
+};
+
+export const GET_COUNTRIES = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const countries = await GET_ALL_COUNTRIES();
+    return res.success(countries.data);
+  } catch (error) {
+    next(res.error.InternalServerError('Unable to get countries'));
+  }
+};
+
+export const GET_STATES = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const country = req.params.countryId;
+    const states = await GET_STATES_BY_COUNTRY(country);
+    return res.success(states.data);
+  } catch (error) {
+    next(res.error.InternalServerError('Unable to get states'));
+  }
+};
+
+export const GET_CITIES = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const countryId = req.params.countryId;
+    const stateId = req.params.stateId;
+    const cities = await GET_CITIES_BY_STATE_AND_COUNTRY(countryId, stateId);
+    return res.success(cities.data);
+  } catch (error) {
+    next(res.error.InternalServerError('Unable to get cities'));
+  }
 };

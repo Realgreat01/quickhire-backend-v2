@@ -1,6 +1,6 @@
 import { CompanySchema } from '../../models';
 import errorHandler from '../../errors';
-import CloudinaryConfig from '../../config/cloudinary';
+import { UPLOAD_TO_CLOUDINARY } from '../../config/cloudinary';
 import streamifier from 'streamifier';
 import { NextFunction, Request, Response } from 'express';
 
@@ -56,57 +56,38 @@ export const UPLOAD_COMPANY_LOGO = async (req: Request, res: Response, next: Nex
     }
 	*/
 
-  const options = {
-    overwrite: false,
-    unique_filename: true,
-    folder: 'quickhire-company-logo',
-  };
-
   const { id } = req.user;
   try {
-    let cloudinaryUploadStream = CloudinaryConfig.uploader.upload_stream(options, async (error, data) => {
-      if (error) {
-        console.log(error);
-        return next(res.error.BadRequest(error));
-      } else {
-        await CompanySchema.findByIdAndUpdate(id, { logo: data.url });
-        return res.success({ logo: data.url }, 'Logo updated successfully !');
-      }
-    });
-    if (req.file) streamifier.createReadStream(req.file.buffer).pipe(cloudinaryUploadStream);
+    if (req.file) {
+      const imageURL = await UPLOAD_TO_CLOUDINARY(req.file);
+      await CompanySchema.findByIdAndUpdate(id, { logo: imageURL });
+      return res.success({ logo: imageURL }, 'cover image updated successfully !');
+    } else return next(res.error.BadRequest());
   } catch (error) {
     next(res.createError(500, '', errorHandler(error)));
   }
 };
+
 export const UPLOAD_COMPANY_COVER_IMAGE = async (req: Request, res: Response, next: NextFunction) => {
   //converting buffer to usable format
 
-  /*  #swagger.consumes = ['multipart/form-data']
-		#swagger.description = 'uploading user profile picture '
-		#swagger.summary = 'Some for user profile picture '
+  /*    #swagger.consumes = ['multipart/form-data']
+		    #swagger.description = 'uploading user profile picture '
+		    #swagger.summary = 'Some for user profile picture '
         #swagger.parameters['profile_picture'] = {
-		in: 'formData',
-		type: 'file',
-		required: 'true',
-    }
+                  in: 'formData',
+                  type: 'file',
+                  required: 'true',
+         }
 	*/
-
-  const options = {
-    overwrite: false,
-    unique_filename: true,
-    folder: 'quickhire-company-covers',
-  };
 
   const { id } = req.user;
   try {
-    let cloudinaryUploadStream = CloudinaryConfig.uploader.upload_stream(options, async (error, data) => {
-      if (error) next(res.error.BadRequest('unable to cover image'));
-      else {
-        await CompanySchema.findByIdAndUpdate(id, { cover_image: data.url });
-        return res.success({ cover_image: data.url }, 'coverimage updated successfully !');
-      }
-    });
-    if (req.file) streamifier.createReadStream(req.file.buffer).pipe(cloudinaryUploadStream);
+    if (req.file) {
+      const imageURL = await UPLOAD_TO_CLOUDINARY(req.file);
+      await CompanySchema.findByIdAndUpdate(id, { cover_image: imageURL });
+      return res.success({ cover_image: imageURL }, 'cover image updated successfully !');
+    } else return next(res.error.BadRequest());
   } catch (error) {
     next(res.createError(500, '', errorHandler(error)));
   }

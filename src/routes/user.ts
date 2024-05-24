@@ -1,11 +1,8 @@
 import { Router } from 'express';
 require('dotenv').config();
-import multer from 'multer';
 const router: Router = Router();
 
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
-
+import { MULTER_UPLOAD } from '../config/cloudinary';
 export default router;
 
 import {
@@ -66,4 +63,4 @@ router.post('/project', ADD_PROJECT);
 router.put('/project/:id', UPDATE_PROJECT);
 router.delete('/project/:id', DELETE_PROJECT);
 
-router.post('/update/profile-picture', upload.single('profile_picture'), UPLOAD_PROFILE_PICTURE);
+router.put('/update/profile-picture', MULTER_UPLOAD.single('profile_picture'), UPLOAD_PROFILE_PICTURE);
