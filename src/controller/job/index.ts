@@ -98,7 +98,7 @@ export const UPDATE_JOB_APPLICANT = async (req: Request, res: Response, next: Ne
     else {
       const applicantIndex = job.applicants.findIndex((user) => user.user.toString() === applicantId);
       if (applicantIndex === -1) return next(res.error.NotFound('Applicant not found in this job'));
-      for (const key in updates) {
+      for(const key in updates) {
         job.applicants[applicantIndex][key] = updates[key];
         const updatedJob = await job.save();
         return res.success(updatedJob, 'Applicant details updated successfully', 201);

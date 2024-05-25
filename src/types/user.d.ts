@@ -74,7 +74,9 @@ export interface Project extends Document {
   preview_url: string;
   role?: string;
   project_type?: 'commercial' | 'academic' | 'personal' | 'open source';
-  images_or_screenshots?: string[];
+  screenshot?: string;
+  screenshots?: string;
+  images_or_screenshots?: [string];
   status?: 'completed' | 'in progress' | 'on hold';
 }
 

@@ -35,6 +35,7 @@ import {
   GET_PROJECT,
   GET_SINGLE_PROJECT,
   UPDATE_PROJECT,
+  UPLOAD_PROJECT_SCREENSHOT,
 } from '../controller/user/projects';
 
 router.get('/', GET_USER_DETAILS);
@@ -61,6 +62,7 @@ router.get('/project', GET_PROJECT);
 router.get('/project/:id', GET_SINGLE_PROJECT);
 router.post('/project', ADD_PROJECT);
 router.put('/project/:id', UPDATE_PROJECT);
+router.put('/project/:id/screenshot', MULTER_UPLOAD.single('screenshot'), UPLOAD_PROJECT_SCREENSHOT);
 router.delete('/project/:id', DELETE_PROJECT);
 
 router.put('/update/profile-picture', MULTER_UPLOAD.single('profile_picture'), UPLOAD_PROFILE_PICTURE);

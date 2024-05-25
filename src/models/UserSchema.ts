@@ -122,7 +122,7 @@ const UserSchema = new Schema<UserInterface>(
 
         fullname: {
           type: String,
-          required: [true, 'Referee fullname is required'],
+          required: [true, 'Referee full name is required'],
         },
         title: {
           type: String,

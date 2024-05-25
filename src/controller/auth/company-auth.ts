@@ -62,7 +62,7 @@ export const LOGIN_COMPANY = async (req: Request, res: Response, next: NextFunct
       const { id, status } = company;
       const token = await SIGN_TOKEN({ id, status });
       return res.success({ token, company_id: company.company_id });
-    } else next(res.error.NotFound('invalid nn credentials!'));
+    } else next(res.error.NotFound('invalid credentials!'));
   } else next(res.error.NotFound('invalid credentials!'));
 };
 

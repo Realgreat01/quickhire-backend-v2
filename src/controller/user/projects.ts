@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { UserSchema } from '../../models/';
 import errorHandler from '../../errors';
+import { UPLOAD_TO_CLOUDINARY } from '../../config/cloudinary';
+import { ProjectSchema } from 'models/schemas/projects';
 
 export const GET_PROJECT = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.user;
@@ -58,6 +60,30 @@ export const UPDATE_PROJECT = async (req: Request, res: Response, next: NextFunc
   } else next(res.error.NotFound('user not found'));
 };
 
+export const UPLOAD_PROJECT_SCREENSHOT = async (req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.params;
+  const userID = req.user.id;
+  if (req.file) {
+    try {
+      const imageURL = await UPLOAD_TO_CLOUDINARY(req.file);
+
+      const user = await UserSchema.findOneAndUpdate(
+        { _id: userID, 'projects._id': id },
+        { $set: { 'projects.$.screenshot': imageURL } },
+        { new: true },
+      );
+
+      if (user) {
+        return res.success(user.projects, 'Update successful');
+      } else {
+        return next(res.error.NotFound('Selected project not found or has been previously modified'));
+      }
+    } catch (error) {
+      return next(res.createError(400, '', errorHandler(error)));
+    }
+  } else next(res.error.NotFound('user not found'));
+};
+
 export const DELETE_PROJECT = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
   const userID = req.user.id;
@@ -73,3 +99,25 @@ export const DELETE_PROJECT = async (req: Request, res: Response, next: NextFunc
     next(res.createError(400, '', errorHandler(error)));
   }
 };
+
+const updateProjects = async () => {
+  try {
+    const users = await UserSchema.find({});
+
+    for (const user of users) {
+      // Update each project within the user's projects array
+      for (let i = 0; i < user.projects.length; i++) {
+        user.projects[i].images_or_screenshots = undefined;
+        user.projects[i].screenshots = undefined;
+      }
+
+      // Save the updated user document
+      await user.save();
+    }
+    console.log('Fields removed successfully');
+  } catch (error) {
+    console.error('Error removing fields:', error);
+  }
+};
+
+// updateProjects();

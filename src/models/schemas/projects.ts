@@ -18,7 +18,12 @@ export const ProjectSchema = new Schema<Project>({
     enum: ['commercial', 'academic', 'personal', 'open source'],
     default: 'personal',
   },
-  images_or_screenshots: [{ type: String, default: '' }],
+  // images_or_screenshots: [{ type: String }],
+  // screenshots: [{ type: String }],
+  screenshot: {
+    type: String,
+    default: 'https://res.cloudinary.com/dirmjuvyr/image/upload/v1716625576/quickhire/no-photo_ctytmq.jpg',
+  },
   status: {
     type: String,
     enum: ['completed', 'in progress', 'on hold'],

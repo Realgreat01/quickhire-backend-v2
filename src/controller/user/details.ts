@@ -32,7 +32,9 @@ export const GET_SINGLE_USER = async (req: Request, res: Response, next: NextFun
 
   try {
     const user = await UserSchema.findOne({ username: id }).select('-password');
-    return res.success(user);
+    if (user) {
+      return res.success(user);
+    } else throw Error('user not found');
   } catch (error) {
     next(res.error.NotFound('user not found'));
   }
@@ -73,6 +75,7 @@ export const UPLOAD_PROFILE_PICTURE = async (req: Request, res: Response, next: 
   };
 
   const { id } = req.user;
+
   try {
     if (req.file) {
       const imageURL = await UPLOAD_TO_CLOUDINARY(req.file);

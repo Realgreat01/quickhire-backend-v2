@@ -20,9 +20,9 @@ const options = {
   folder: 'quickhire',
 };
 
-export const UPLOAD_TO_CLOUDINARY = async (file: Express.Multer.File) => {
+export const UPLOAD_TO_CLOUDINARY = async (file: Express.Multer.File): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
+    const stream = cloudinary.uploader.upload_stream(options, (error: unknown, result: any) => {
       if (result) {
         resolve(result.secure_url);
       } else {
