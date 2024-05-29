@@ -1,4 +1,4 @@
-import { UserSchema, JobSchema, CompanySchema } from '../../models';
+import { UserSchema, JobSchema, CompanySchema, EmailListSchema } from '../../models';
 import { NextFunction, Request, Response } from 'express';
 import errorHandler from '../../errors';
 import { IMAGE_TO_BASE64 } from '../../utils';
@@ -11,6 +11,27 @@ export const CONVERT_IMAGE_BASE64_URL = async (req: Request, res: Response, next
     return res.success(base64);
   } catch (error) {
     next(res.createError(500, 'Error converting file', error));
+  }
+};
+
+export const SUBSCRIBE_TO_EMAIL = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const subscribedUser = await EmailListSchema.create(req.body);
+    return res.success(subscribedUser, 'subscription successful', 201);
+  } catch (error) {
+    return next(res.createError(400, '', errorHandler(error)));
+  }
+};
+
+export const GET_EMAIL_SUBSCRIBERS = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const subscribers = await EmailListSchema.find();
+    const emailList = subscribers.map(({ email, firstname, lastname }) => {
+      return { email, firstname, lastname };
+    });
+    return res.success(emailList, 'subscribers retrieved successfully');
+  } catch (error) {
+    return next(res.createError(400, '', errorHandler(error)));
   }
 };
 
