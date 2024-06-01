@@ -25,6 +25,23 @@ const AUTHENTICATE_USER = async (req: Request, res: Response, next: NextFunction
     }
   } else return next(res.error.Unauthorized('Access Denied - User not authenticated'));
 };
+export const CHECK_AUTHENTICATED_USER = async (req: Request, res: Response, next: NextFunction) => {
+  /* #swagger.autoHeaders=false */
+  /* #swagger.security = [{ "bearerAuth": [] }] */
+
+  const { authorization } = req.headers;
+  if (authorization && process.env.ACCESS_TOKEN) {
+    if (authorization.startsWith('Bearer')) {
+      const token = authorization.split(' ')[1];
+      try {
+        req.user = VERIFY_TOKEN(token);
+        return next();
+      } catch (error) {
+        return next();
+      }
+    }
+  } else return next();
+};
 
 const VERIFY_USER_DETAILS = async (req: Request, res: Response, next: NextFunction) => {
   /* #swagger.summary = "verify a user detail , no logic for now" */

@@ -1,16 +1,19 @@
+import { HTML_TO_TEXT } from './../../utils';
 import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import { JobSchema } from '../../models';
 import errorHandler from '../../errors';
 import { Applicant, JobInterface } from '../../types';
+import { DateTime } from 'luxon';
+import ContentBasedRecommender from 'content-based-recommender';
 
 export const GET_COMPANY_JOB = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.user;
   try {
-    const companyJob = await JobSchema.find({ posted_by: id }).populate(
-      'posted_by',
-      'company_name address logo company_id',
-    );
+    const companyJob = await JobSchema.find({ posted_by: id })
+      .populate('posted_by', 'company_name address logo company_id')
+      .sort({ createdAt: -1 })
+      .lean();
     return res.success(companyJob, 201);
   } catch (error) {
     next(res.createError(500, '', errorHandler(error)));
@@ -57,7 +60,10 @@ export const GET_JOB_APPLICANTS = async (req: Request, res: Response, next: Next
   const jobId = req.params.jobId;
 
   try {
-    const job = await JobSchema.findOne({ _id: jobId, posted_by: userId }).populate('applicants.user');
+    const job = await JobSchema.findOne({ _id: jobId, posted_by: userId })
+      .populate('applicants.user')
+      .sort({ createdAt: -1 })
+      .lean();
     if (!job) return next(res.error.NotFound('job not found'));
     else return res.success(job.applicants, 'Applicants retrieved successfully');
   } catch (error) {
@@ -98,7 +104,7 @@ export const UPDATE_JOB_APPLICANT = async (req: Request, res: Response, next: Ne
     else {
       const applicantIndex = job.applicants.findIndex((user) => user.user.toString() === applicantId);
       if (applicantIndex === -1) return next(res.error.NotFound('Applicant not found in this job'));
-      for(const key in updates) {
+      for (const key in updates) {
         job.applicants[applicantIndex][key] = updates[key];
         const updatedJob = await job.save();
         return res.success(updatedJob, 'Applicant details updated successfully', 201);
@@ -122,13 +128,101 @@ export const DELETE_JOB = async (req: Request, res: Response, next: NextFunction
 
 export const GET_ALL_JOBS = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const recommender = new ContentBasedRecommender({
+      minScore: 0.1,
+      maxSimilarDocuments: 1000,
+      // debug: true,
+    });
+
     const allJobs = await JobSchema.find()
       .populate('posted_by', 'company_name address logo company_id')
       .populate(
         'applicants.user',
         'username email firstname lastname phone_number experience_level highest_education_level',
-      );
-    return res.success(allJobs);
+      )
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean();
+
+    const formattedJob = allJobs.map((job) => {
+      const dateToCheck = DateTime.fromISO(new Date(job.posted_on).toISOString());
+      const now = DateTime.local();
+      const isLessThan7DaysAgo = dateToCheck >= now.minus({ days: 7 });
+
+      job['is_new'] = isLessThan7DaysAgo;
+
+      if (req.user) {
+        if (job.applicants.some((applicant: any) => applicant.user._id.toString() === req.user.id)) {
+          job['is_applicant'] = true;
+        } else job['is_applicant'] = false;
+      } else job['is_applicant'] = false;
+      return job;
+    });
+
+    return res.success(formattedJob);
+  } catch (error) {
+    next(res.createError(500, '', errorHandler(error)));
+  }
+};
+export const GET_MATCHED_JOBS = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const recommender = new ContentBasedRecommender({
+      minScore: 0.1,
+      maxSimilarDocuments: 1000,
+      // debug: true,
+    });
+
+    const allJobs = await JobSchema.find()
+      .populate('posted_by', 'company_name address logo company_id')
+      .populate(
+        'applicants.user',
+        'username email firstname lastname phone_number experience_level highest_education_level',
+      )
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const formattedJob = allJobs.map((job) => {
+      const dateToCheck = DateTime.fromISO(new Date(job.posted_on).toISOString());
+      const now = DateTime.local();
+      const isLessThan7DaysAgo = dateToCheck >= now.minus({ days: 7 });
+
+      job['is_new'] = isLessThan7DaysAgo;
+      if (req.user) {
+        const isApplicant = job.applicants.some(
+          (applicant: any) => applicant.user.toString() === req.user.id,
+        );
+
+        job['is_applicant'] = isApplicant;
+      } else job['is_applicant'] = false;
+      return job;
+    });
+
+    const jobsByIndex = formattedJob.map(({ ...content }, index) => ({
+      id: index,
+      content,
+    }));
+
+    const aggregatedJobs = allJobs.map((job, index) => {
+      const skills = job.required_skills.map((skill) => skill.name);
+
+      return {
+        id: index,
+        content:
+          `${job.job_title} ${job.job_title} ${skills.join(' ')} ${job.experience_level} ${job.job_type}  ${job.job_location_type} ${HTML_TO_TEXT(job.job_description)}`.toLowerCase(),
+      };
+    });
+
+    const query = {
+      id: aggregatedJobs.length + 1,
+      content:
+        `${req.query.title ?? ''} ${req.query.location ?? ''} ${req.query.type ?? ''} ${req.query.level ?? ''}`.toLowerCase(),
+    };
+    aggregatedJobs.push(query);
+    recommender.train(aggregatedJobs);
+    const matchedJobs = recommender.getSimilarDocuments(query.id);
+
+    const jobs = matchedJobs.map((job: any) => jobsByIndex[job.id].content);
+    return res.success(jobs);
   } catch (error) {
     next(res.createError(500, '', errorHandler(error)));
   }
@@ -137,11 +231,28 @@ export const GET_ALL_JOBS = async (req: Request, res: Response, next: NextFuncti
 export const GET_SINGLE_JOB = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const jobId = req.params.jobId;
-    const requestedJob = await JobSchema.findById(jobId).populate(
-      'posted_by',
-      'company_name address logo company_id',
-    );
-    return res.success(requestedJob);
+
+    const job = await JobSchema.findById(jobId)
+      .populate('posted_by', 'company_name address logo company_id')
+      .lean();
+
+    if (job) {
+      const dateToCheck = DateTime.fromISO(new Date(job.posted_on).toISOString());
+      const now = DateTime.local();
+      const isLessThan7DaysAgo = dateToCheck >= now.minus({ days: 7 });
+
+      job['is_new'] = isLessThan7DaysAgo;
+
+      if (req.user) {
+        const isApplicant = job.applicants.some(
+          (applicant: any) => applicant.user.toString() === req.user.id,
+        );
+
+        job['is_applicant'] = isApplicant;
+      }
+
+      return res.success(job);
+    }
   } catch (error) {
     next(res.createError(400, '', errorHandler(error)));
   }
@@ -158,7 +269,7 @@ export const APPLY_FOR_JOB = async (req: Request, res: Response, next: NextFunct
         applicant.user.equals(new Types.ObjectId(userId)),
       );
 
-      if (isApplicant) return next(res.error.Forbidden('You have already applied for this job'));
+      if (isApplicant) throw Error('You have already applied for this job');
 
       const appliedJob = await JobSchema.findByIdAndUpdate(
         jobId,
@@ -175,10 +286,10 @@ export const APPLY_FOR_JOB = async (req: Request, res: Response, next: NextFunct
 export const GET_APPLIED_JOBS = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.id;
-    const jobs = await JobSchema.find({ 'applicants.user': userId }).populate(
-      'posted_by',
-      'company_name address logo company_id',
-    );
+    const jobs = await JobSchema.find({ 'applicants.user': userId })
+      .populate('posted_by', 'company_name address logo company_id')
+      .sort({ createdAt: -1 })
+      .lean();
 
     const processedData: any = [];
 
@@ -198,3 +309,45 @@ export const GET_APPLIED_JOBS = async (req: Request, res: Response, next: NextFu
     next(res.createError(400, '', errorHandler(error)));
   }
 };
+
+export const GET_SIMILAR_JOBS = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const jobId = req.params.id;
+    const recommender = new ContentBasedRecommender({ minScore: 0.1, maxSimilarDocuments: 10 });
+    const allJobs = await JobSchema.find().lean();
+    const otherJobs = await JobSchema.find({ _id: { $ne: new Types.ObjectId(jobId) } })
+      .lean()
+      .sort({ createdAt: -1 })
+      .limit(9);
+
+    const jobsByIndex = allJobs.map(({ ...content }, index) => ({
+      id: index,
+      content,
+    }));
+
+    const currentJob = allJobs.findIndex((job) => job._id.toString() === jobId);
+
+    const formatedJob = allJobs.map((job, index) => {
+      const skills = job.required_skills.map((skill) => skill.name);
+      return {
+        id: index,
+        content: `${job.job_title} ${job.job_title} ${job.experience_level} ${skills.join(' ')} ${job.job_type}  ${job.job_location_type}`,
+      };
+    });
+
+    recommender.train(formatedJob);
+    const similarJob = recommender.getSimilarDocuments(currentJob, 0, 9);
+
+    const jobs = similarJob.map((job: any) => jobsByIndex[job.id].content);
+    if (jobs.length > 0) return res.success(jobs);
+    else return res.success(otherJobs);
+  } catch (e) {}
+};
+
+const updateJobs = async () => {
+  try {
+    await JobSchema.updateMany({}, { applicants: [] });
+  } catch (error) {}
+};
+
+// updateJobs();

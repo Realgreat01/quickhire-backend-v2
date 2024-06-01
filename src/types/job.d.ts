@@ -49,6 +49,6 @@ export interface JobInterface extends Document {
   job_location_type: JobLocationType;
   salary: Salary;
   job_status: 'open' | 'closed' | 'paused';
-  experience_level: 'entry' | 'mid' | 'senior';
+  experience_level: 'intership' | 'entry' | 'junior' | 'mid' | 'senior' | 'expert';
   required_skills: Skills[];
 }

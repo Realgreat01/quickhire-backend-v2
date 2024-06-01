@@ -92,7 +92,12 @@ const JobSchema = new Schema<JobInterface>(
       default: 'remote',
     },
     job_status: { type: String, enum: ['open', 'closed', 'paused'], default: 'open' },
-    experience_level: { type: String, enum: ['entry', 'mid', 'senior'], default: 'mid', required: true },
+    experience_level: {
+      type: String,
+      enum: ['intership', 'entry', 'junior', 'mid', 'senior', 'expert'],
+      default: 'mid',
+      required: true,
+    },
   },
   { timestamps: true },
 );
