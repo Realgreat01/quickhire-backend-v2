@@ -179,6 +179,7 @@ const UserSchema = new Schema<UserInterface>(
       required: true,
       default: 'mid',
     },
+    years_of_experience: { type: Number, default: 1 },
     rate: { type: Number, default: 10 },
     highest_education_level: {
       type: String,

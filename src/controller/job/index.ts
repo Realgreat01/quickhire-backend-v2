@@ -61,7 +61,7 @@ export const GET_JOB_APPLICANTS = async (req: Request, res: Response, next: Next
 
   try {
     const job = await JobSchema.findOne({ _id: jobId, posted_by: userId })
-      .populate('applicants.user')
+      .populate('applicants.user', '-password')
       .sort({ createdAt: -1 })
       .lean();
     if (!job) return next(res.error.NotFound('job not found'));
@@ -106,9 +106,9 @@ export const UPDATE_JOB_APPLICANT = async (req: Request, res: Response, next: Ne
       if (applicantIndex === -1) return next(res.error.NotFound('Applicant not found in this job'));
       for (const key in updates) {
         job.applicants[applicantIndex][key] = updates[key];
-        const updatedJob = await job.save();
-        return res.success(updatedJob, 'Applicant details updated successfully', 201);
       }
+      const updatedJob = await job.save();
+      return res.success(updatedJob, 'Applicant details updated successfully', 201);
     }
   } catch (error) {
     next(res.createError(500, '', errorHandler(error)));
@@ -294,7 +294,7 @@ export const GET_APPLIED_JOBS = async (req: Request, res: Response, next: NextFu
     const processedData: any = [];
 
     jobs.forEach((job: JobInterface) => {
-      const { applicants, ...jobDetails } = job.toObject();
+      const { applicants, ...jobDetails } = job;
       const currentApplicant = applicants.find(
         (applicant: Applicant) => applicant.user.toString() === userId,
       );

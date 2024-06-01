@@ -120,7 +120,8 @@ export interface UserInterface extends Document {
   address: AddressInterface;
   reference: Reference[];
   social_media: SocialLinks;
-  experience_level: 'intership' | 'entry' | 'junior' | 'mid' | 'senior' | 'expert';
+  experience_level: 'internship' | 'entry' | 'junior' | 'mid' | 'senior' | 'expert';
+  years_of_experience: number;
   rate: number;
   highest_education_level: Education['type'];
   job_interest: JobLocationType;

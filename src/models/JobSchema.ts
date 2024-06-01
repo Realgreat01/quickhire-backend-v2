@@ -4,7 +4,7 @@ import { JobInterface, InterviewFeedback } from '../types';
 
 const InterviewFeedbackSchema = new Schema<InterviewFeedback>({
   date: { type: Date, required: true },
-  interviewer: { type: Schema.Types.ObjectId, required: true, ref: 'hiring-managers' },
+  // interviewer: { type: Schema.Types.ObjectId, required: true, ref: 'hiring-managers' },
   comments: { type: String, required: true },
   score: Number,
 });
@@ -27,7 +27,7 @@ const JobSchema = new Schema<JobInterface>(
         },
         cover_letter: { type: String },
         interview_feedback: [InterviewFeedbackSchema],
-        evaluation_score: { type: String || Number, default: 0 },
+        evaluation_score: { type: Number, default: 0, max: [100, 'evaluation score must be less than 100'] },
         notes: { type: String, default: '' },
         interview_dates: [{ type: Date }],
         date_applied: { type: Date, immutable: true, default: () => Date.now() },
