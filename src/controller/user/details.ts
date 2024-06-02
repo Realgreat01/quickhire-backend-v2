@@ -1,7 +1,7 @@
 import { UserSchema } from '../../models';
 import errorHandler from '../../errors';
 import { UPLOAD_TO_CLOUDINARY } from '../../config/cloudinary';
-
+import ContentBasedRecommender from 'content-based-recommender-ts';
 import { NextFunction, Request, Response } from 'express';
 
 // ALL USERS
@@ -34,6 +34,54 @@ export const GET_SINGLE_USER = async (req: Request, res: Response, next: NextFun
     const user = await UserSchema.findOne({ username: id }).select('-password');
     if (user) {
       return res.success(user);
+    } else throw Error('user not found');
+  } catch (error) {
+    next(res.error.NotFound('user not found'));
+  }
+};
+
+export const GET_SIMILAR_USERS = async (req: Request, res: Response, next: NextFunction) => {
+  const username = req.params.id;
+  const recommender = new ContentBasedRecommender({
+    minScore: 0.1,
+    debug: false,
+    maxVectorSize: 100,
+    maxSimilarDocs: 4,
+  });
+  try {
+    const user = await UserSchema.findOne({ username }).select('-password').lean();
+    const users = await UserSchema.find({ username: { $ne: username } })
+      .select('-password')
+      .lean();
+
+    if (user) {
+      const aggregateUsers = users.map((user) => {
+        const experience = user?.experience.map(({ company, role }) => `${company} ${role}`).join(' ');
+        const education = user?.education.map((edu) => `${edu.institution} ${edu.course}`).join(' ');
+        const skills = user?.skills?.top_skills.map(({ name }) => `${name}`).join(' ');
+        return {
+          id: user._id,
+          content: `${user.username} ${user.header_bio} ${user.gender} ${experience} ${education} ${skills} ${user.address.country} ${user.firstname} ${user.lastname} ${user.skills?.stack} `,
+        };
+      });
+
+      const currentUser = () => {
+        const experience = user?.experience.map(({ company, role }) => `${company} ${role}`).join(' ');
+        const education = user?.education.map((edu) => `${edu.institution} ${edu.course}`).join(' ');
+        const skills = user?.skills?.top_skills.map(({ name }) => `${name}`).join(' ');
+        return {
+          id: user._id,
+          content: `${user.username} ${user.header_bio} ${user.gender} ${experience} ${education} ${skills} ${user.address.country} ${user.firstname} ${user.lastname} ${user.skills?.stack} `,
+        };
+      };
+
+      const formattedUser = currentUser();
+
+      aggregateUsers.push(formattedUser);
+      recommender.train(aggregateUsers);
+      const matchedUsers = recommender.getSimilarDocuments(formattedUser.id);
+      const similarUsers = matchedUsers.map(({ id }) => users.find((user) => id === user._id));
+      return res.success(similarUsers);
     } else throw Error('user not found');
   } catch (error) {
     next(res.error.NotFound('user not found'));

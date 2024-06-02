@@ -18,6 +18,7 @@ import {
   GET_JOB_APPLICANT,
   GET_SINGLE_COMPANY_JOB,
   GET_SIMILAR_JOBS,
+  GET_JOB_RECOMMENDATIONS,
 } from '../controller/job';
 
 import { IS_COMPANY, IS_USER } from '../middlewares';
@@ -33,4 +34,6 @@ router.put('/company/:jobId/applicants/:applicantId', IS_COMPANY, UPDATE_JOB_APP
 
 router.post('/user/apply/:jobId', IS_USER, APPLY_FOR_JOB);
 router.get('/user/applied', IS_USER, GET_APPLIED_JOBS);
+router.get('/user/recommendations/', IS_USER, GET_JOB_RECOMMENDATIONS);
+
 router.get('/similar/:id', GET_SIMILAR_JOBS);

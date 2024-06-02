@@ -1,8 +1,10 @@
 import type { Types, Document } from 'mongoose';
 import { JobLocationType, JobType, Skills } from './utils';
+import { UserInterface } from './user';
+import { CompanyInterface } from './company';
 
 export interface Applicant {
-  user: Types.ObjectId;
+  user: UserInterface;
   status: 'submitted' | 'received' | 'processing' | 'accepted' | 'rejected';
   cover_letter?: string;
   interview_feedback?: InterviewFeedback[];
@@ -38,7 +40,7 @@ export interface Salary {
 }
 
 export interface JobInterface extends Document {
-  posted_by: Types.ObjectId;
+  posted_by: CompanyInterface;
   applicants: Applicant[];
   job_title: string;
   job_description: string;

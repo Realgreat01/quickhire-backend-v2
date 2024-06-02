@@ -25,7 +25,14 @@ const publicPath = path.join(__dirname, '../public');
 const homeDir = path.join(__dirname, '..');
 
 instrument(io, { auth: false });
+
 const allowedOrigins = [
+  'http://www.quickhire.site',
+  'https://www.quickhire.site',
+
+  'http://quickhire.site',
+  'https://quickhire.site',
+
   'https://quickhire.vercel.app',
   'https://vercel.app',
   'http://localhost:3000',

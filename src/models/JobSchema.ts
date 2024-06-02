@@ -1,6 +1,6 @@
 import { model, Schema } from 'mongoose';
 import { isDate } from 'validator';
-import { JobInterface, InterviewFeedback } from '../types';
+import { JobInterface, InterviewFeedback, UserInterface } from '../types';
 
 const InterviewFeedbackSchema = new Schema<InterviewFeedback>({
   date: { type: Date, required: true },
