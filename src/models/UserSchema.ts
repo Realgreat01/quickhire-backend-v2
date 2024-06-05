@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import { Schema, Types, model } from 'mongoose';
 import { isEmail, isMobilePhone, isURL } from 'validator';
 import { UserInterface } from '../types';
 
@@ -217,6 +217,7 @@ const UserSchema = new Schema<UserInterface>(
     experience: [ExperienceSchema],
     skills: SkillSchema,
     education: [EducationSchema],
+    bookmarked_jobs: [{ type: Schema.Types.ObjectId, ref: 'jobs' }],
   },
   { timestamps: true },
 );

@@ -35,6 +35,7 @@ const allowedOrigins = [
 
   'https://quickhire.vercel.app',
   'https://vercel.app',
+
   'http://localhost:3000',
   'http://localhost:5173',
   '*',
@@ -59,7 +60,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(helmet());
+app.use(helmet({}));
 app.use(express.static(publicPath));
 app.set('views', path.join(homeDir, 'views'));
 app.set('view engine', 'ejs');

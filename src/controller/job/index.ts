@@ -19,6 +19,7 @@ export const GET_COMPANY_JOB = async (req: Request, res: Response, next: NextFun
     next(res.createError(500, '', errorHandler(error)));
   }
 };
+
 export const GET_SINGLE_COMPANY_JOB = async (req: Request, res: Response, next: NextFunction) => {
   const userId = req.user.id;
   const jobId = req.params.jobId;
@@ -45,11 +46,75 @@ export const POST_NEW_JOB = async (req: Request, res: Response, next: NextFuncti
 export const UPDATE_JOB = async (req: Request, res: Response, next: NextFunction) => {
   const userId = req.user.id;
   const jobId = req.params.jobId;
+  const { job_status, ...updates } = req.body;
   try {
-    const updatedJob = await JobSchema.findOneAndUpdate({ posted_by: userId, _id: jobId }, req.body, {
+    const updatedJob = await JobSchema.findOneAndUpdate({ posted_by: userId, _id: jobId }, updates, {
       new: true,
     });
     return res.success(updatedJob, 201);
+  } catch (error) {
+    next(res.createError(500, '', errorHandler(error)));
+  }
+};
+
+export const UPDATE_JOB_APPLICATION_STATUS = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user.id;
+  const jobId = req.params.jobId;
+  const status: 'open' | 'closed' | 'paused' = req.body.status;
+
+  try {
+    const job = await JobSchema.findOne({ _id: jobId, posted_by: userId }).populate(
+      'applicants.user',
+      'email username firstname lastname',
+    );
+    interface EmailList {
+      email: string;
+      firstname: string;
+      lastname: string;
+    }
+
+    if (!job) {
+      return next(res.createError(404, 'Job not found'));
+    }
+
+    if (status === 'closed') {
+      const rejectedUsers: EmailList[] = [];
+
+      job.applicants.map((applicant) => {
+        if (applicant.status === 'received' || applicant.status === 'submitted') {
+          applicant.status = 'rejected';
+          rejectedUsers.push({
+            email: applicant.user.email,
+            firstname: applicant.user.firstname,
+            lastname: applicant.user.lastname,
+          });
+        }
+      });
+
+      job.job_status = status;
+      job.application_ends = new Date();
+
+      const closedJob = await job.save();
+      return res.success(closedJob);
+    } else if (status === 'paused') {
+      job.job_status = status;
+      const pausedJob = await job.save();
+
+      const currentApplicants: EmailList[] = [];
+      job.applicants.map((applicant) => {
+        currentApplicants.push({
+          email: applicant.user.email,
+          firstname: applicant.user.firstname,
+          lastname: applicant.user.lastname,
+        });
+      });
+
+      return res.success(pausedJob);
+    } else {
+      job.job_status = 'open';
+      const currentJob = await job.save();
+      return res.success(currentJob);
+    }
   } catch (error) {
     next(res.createError(500, '', errorHandler(error)));
   }
@@ -93,9 +158,6 @@ export const GET_JOB_APPLICANTS = async (req: Request, res: Response, next: Next
 
       const currentJob = currentJobFn();
       applicants.push(currentJob);
-
-      console.log({ applicants, currentJob });
-
       recommender.train(applicants);
 
       const matchedApplicants = recommender.getSimilarDocuments(currentJob.id);
@@ -153,6 +215,34 @@ export const UPDATE_JOB_APPLICANT = async (req: Request, res: Response, next: Ne
   }
 };
 
+export const UPDATE_BULK_JOB_APPLICANTS = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user.id; // Assuming this is the company's user ID
+  const jobId = req.params.jobId;
+  const { applicants, ...updates } = req.body; // `applicants` should be an array of applicant IDs, `updates` is an object with key-value pairs to update
+
+  try {
+    const job = await JobSchema.findOne({ _id: jobId, posted_by: userId });
+    if (!job) return next(res.error.NotFound('Job not found'));
+
+    applicants.map((applicantId: string) => {
+      const applicantIndex = job.applicants.findIndex(
+        (applicant) => applicant.user.toString() === applicantId,
+      );
+      if (applicantIndex !== -1) {
+        for (const key in updates) {
+          job.applicants[applicantIndex][key] = updates[key];
+        }
+        return job.applicants[applicantIndex];
+      }
+    });
+
+    const updatedJob = await job.save();
+    return res.success(updatedJob, 'Applicant details updated successfully', 201);
+  } catch (error) {
+    return next(res.createError(500, '', errorHandler(error)));
+  }
+};
+
 export const DELETE_JOB = async (req: Request, res: Response, next: NextFunction) => {
   const userId = req.user.id;
   const jobId = req.params.jobId;
@@ -166,13 +256,6 @@ export const DELETE_JOB = async (req: Request, res: Response, next: NextFunction
 
 export const GET_ALL_JOBS = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const recommender = new ContentBasedRecommender({
-      minScore: 0.1,
-      maxSimilarDocs: 1000,
-      debug: false,
-      maxVectorSize: 100,
-    });
-
     const allJobs = await JobSchema.find({ job_status: 'open' })
       .populate('posted_by', 'company_name address logo company_id')
       .populate(
@@ -180,7 +263,6 @@ export const GET_ALL_JOBS = async (req: Request, res: Response, next: NextFuncti
         'username email firstname lastname phone_number experience_level highest_education_level',
       )
       .sort({ createdAt: -1 })
-      .limit(10)
       .lean();
 
     const formattedJob = allJobs.map((job) => {
@@ -204,7 +286,6 @@ export const GET_ALL_JOBS = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// job search from query
 export const GET_MATCHED_JOBS = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const recommender = new ContentBasedRecommender({
@@ -214,7 +295,7 @@ export const GET_MATCHED_JOBS = async (req: Request, res: Response, next: NextFu
       maxVectorSize: 100,
     });
 
-    const allJobs = await JobSchema.find()
+    const allJobs = await JobSchema.find({ job_status: 'open' })
       .populate('posted_by', 'company_name address logo company_id')
       .populate(
         'applicants.user',
@@ -307,6 +388,12 @@ export const APPLY_FOR_JOB = async (req: Request, res: Response, next: NextFunct
     const job = await JobSchema.findById(jobId);
     if (!job) return next(res.error.NotFound('Job not found'));
     else {
+      if (job.job_status === 'closed')
+        return next(res.error.Forbidden('Job is no longer accepting new applications'));
+      if (job.job_status === 'paused')
+        return next(
+          res.error.Forbidden('Job is no longer accepting new application as it is currently paused'),
+        );
       const isApplicant = job.applicants.find((applicant: any) =>
         applicant.user.equals(new Types.ObjectId(userId)),
       );
@@ -325,6 +412,61 @@ export const APPLY_FOR_JOB = async (req: Request, res: Response, next: NextFunct
   }
 };
 
+export const BOOKMARK_JOB = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user.id;
+  const jobId = req.params.jobId;
+
+  try {
+    const user = await UserSchema.findById(userId).populate('bookmarked_jobs').lean();
+    const job = await JobSchema.findById(jobId).lean();
+
+    if (user && job) {
+      const alreadyBookmarked = user.bookmarked_jobs?.some(
+        (bookmarkedJob) => bookmarkedJob._id.toString() === jobId,
+      );
+
+      if (alreadyBookmarked) return next(res.error.Forbidden('Job already bookmarked'));
+      else {
+        await UserSchema.findByIdAndUpdate(userId, {
+          $push: { bookmarked_jobs: job },
+        });
+        return res.success(user, 'Job bookmarked successfully');
+      }
+    } else {
+      return next(res.error.NotFound('Job not found'));
+    }
+  } catch (error) {
+    next(res.createError(500, '', errorHandler(error)));
+  }
+};
+
+export const DELETE_BOOKMARK_JOB = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user.id;
+  const jobId = req.params.jobId;
+  try {
+    const user = await UserSchema.findById(userId).lean();
+    if (!user) return next(res.error.NotFound('User not found'));
+
+    const jobIndex = user.bookmarked_jobs.findIndex((job) => job.toString() === jobId);
+    if (jobIndex === -1) return next(res.error.NotFound('Job not found in bookmarks'));
+
+    await UserSchema.findByIdAndUpdate(userId, { $pull: { bookmarked_jobs: jobId } }, { new: true });
+    return res.success('Bookmark removed successfully');
+  } catch (error) {
+    next(res.createError(500, '', errorHandler(error)));
+  }
+};
+
+export const GET_BOOKMARK_JOBS = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user.id;
+  try {
+    const user = await UserSchema.findById(userId).populate('bookmarked_jobs').lean();
+    return res.success(user?.bookmarked_jobs);
+  } catch (error) {
+    next(res.createError(500, '', errorHandler(error)));
+  }
+};
+
 export const GET_APPLIED_JOBS = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.id;
@@ -333,7 +475,11 @@ export const GET_APPLIED_JOBS = async (req: Request, res: Response, next: NextFu
       .sort({ createdAt: -1 })
       .lean();
 
-    const processedData: any = [];
+    interface Candidate extends JobInterface {
+      candidate: Applicant;
+      applicants_count: number;
+    }
+    const processedData: Candidate[] = [];
 
     jobs.forEach((job: JobInterface) => {
       const { applicants, ...jobDetails } = job;
@@ -343,10 +489,16 @@ export const GET_APPLIED_JOBS = async (req: Request, res: Response, next: NextFu
       if (currentApplicant) {
         jobDetails['candidate'] = currentApplicant;
         jobDetails['applicants_count'] = applicants.length;
-        processedData.push(jobDetails);
+        processedData.push(jobDetails as Candidate);
       }
     });
-    return res.success(processedData);
+
+    const sortedJobs = processedData.sort(
+      (a: Candidate, b: Candidate) =>
+        new Date(b.candidate.date_applied).getTime() - new Date(a.candidate.date_applied).getTime(),
+    );
+
+    return res.success(sortedJobs);
   } catch (error) {
     next(res.createError(400, '', errorHandler(error)));
   }
@@ -395,15 +547,16 @@ export const GET_JOB_RECOMMENDATIONS = async (req: Request, res: Response, next:
   const userId = req.user.id; // Assuming this is the company's user ID
 
   const recommender = new ContentBasedRecommender({
-    minScore: 0.1,
+    minScore: 0.01,
     maxSimilarDocs: 100,
     maxVectorSize: 100,
     debug: false,
   });
 
   try {
-    const allJobs = await JobSchema.find({ job_status: 'open' }).sort({ createdAt: -1 }).lean();
-
+    const allJobs = await JobSchema.find({ job_status: 'open', 'applicants.user': { $ne: userId } })
+      .sort({ createdAt: -1 })
+      .lean();
     const user = await UserSchema.findById(userId);
 
     const aggregatedJobs = allJobs.map((job, index) => {
@@ -419,7 +572,7 @@ export const GET_JOB_RECOMMENDATIONS = async (req: Request, res: Response, next:
       const skills = user?.skills.top_skills.map((skill) => skill.name);
       return {
         id: `${aggregatedJobs.length}`,
-        content: `${user?.header_bio} ${skills?.join(' ')} ${user?.experience_level} ${user?.job_interest} ${user?.years_of_experience} ${user?.highest_education_level} ${user?.address.country}`,
+        content: `${user?.header_bio} ${user?.skills?.stack} ${skills?.join(' ')} ${user?.experience_level} ${user?.job_interest} ${user?.years_of_experience} ${user?.highest_education_level} ${user?.address.country}`,
       };
     };
 

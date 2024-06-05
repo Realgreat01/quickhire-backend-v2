@@ -1,5 +1,6 @@
 import type { Types, Document } from 'mongoose';
 import type { AddressInterface, JobLocationType, JobType, Skills, SocialLinks } from './utils';
+import { JobInterface } from './job';
 
 export interface Notification {
   title: string;
@@ -128,6 +129,7 @@ export interface UserInterface extends Document {
   availability: string;
   blogs: object[];
   settings: Settings;
+  bookmarked_jobs: JobInterface[];
   notifications: Notification[];
   projects: Project[];
   experience: Experience[];

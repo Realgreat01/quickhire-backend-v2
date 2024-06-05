@@ -23,7 +23,6 @@ function initSocketServer(server: http.Server): Server {
       next();
     } else {
       next(new Error('User not authenticated'));
-      console.log('user not authenticated');
     }
   });
 
