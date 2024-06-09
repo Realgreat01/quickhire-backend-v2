@@ -40,7 +40,23 @@ export const LOGIN_USER = async (req: Request, res: Response, next: NextFunction
   } else return next(res.error.BadRequest('email or password not correct!'));
 };
 
-const changeUserPassword = async (req, res, next) => {};
+const FORGOT_PASSWORD = async (req: Request, res: Response, next: NextFunction) => {
+  /* #swagger.summary = "generates verification code for user forgot password on sign in" */
+  try {
+    const { email } = req.body;
+    const user = await UserSchema.findOne({ email });
+    if (user) {
+      const fullname = user.firstname + ' ' + user.lastname;
+      // const email_is_sent = await SEND_USER_VERIFICATION_EMAIL(user._id, user.email, fullname);
+      const email_is_sent = true;
+      console.log(email_is_sent);
+      if (email_is_sent) return res.success();
+      else throw new Error('Unable to send e-mail');
+    } else res.error.NotFound('No user with the email ' + email + ' found');
+  } catch (error: any) {
+    next(res.error.InternalServerError());
+  }
+};
 
 const logoutUser = async (req, res, next) => {
   req.user = null;

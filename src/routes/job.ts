@@ -24,6 +24,7 @@ import {
   BOOKMARK_JOB,
   GET_BOOKMARK_JOBS,
   DELETE_BOOKMARK_JOB,
+  GET_APPLICANT_RECOMMENDATIONS,
 } from '../controller/job';
 
 import { IS_COMPANY, IS_USER } from '../middlewares';
@@ -37,6 +38,7 @@ router.put('/company/:jobId/update-status', IS_COMPANY, UPDATE_JOB_APPLICATION_S
 router.delete('/company/:jobId', IS_COMPANY, DELETE_JOB);
 
 router.get('/company/:jobId/applicants', IS_COMPANY, GET_JOB_APPLICANTS);
+router.get('/company/:jobId/applicants/recommendations', IS_COMPANY, GET_APPLICANT_RECOMMENDATIONS);
 router.put('/company/:jobId/applicants', IS_COMPANY, UPDATE_BULK_JOB_APPLICANTS);
 router.get('/company/:jobId/applicants/:applicantId', IS_COMPANY, GET_JOB_APPLICANT);
 router.put('/company/:jobId/applicants/:applicantId', IS_COMPANY, UPDATE_JOB_APPLICANT);

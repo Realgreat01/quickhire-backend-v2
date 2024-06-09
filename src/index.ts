@@ -88,7 +88,9 @@ app.get('/api', (req: Request, res: Response, next) => {
 });
 
 app.use('', (req: Request, res: Response, next: NextFunction) => {
-  next(res.error.NotFound());
+  return next(
+    res.createError(404, 'PATH DOES NOT EXIST', { path: req.path, params: req.params, method: req.method }),
+  );
 });
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

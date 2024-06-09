@@ -7,13 +7,24 @@ import { Applicant, JobInterface } from '../../types';
 import { DateTime } from 'luxon';
 import ContentBasedRecommender from 'content-based-recommender-ts';
 
+interface EmailList {
+  email: string;
+  firstname: string;
+  lastname: string;
+}
+
 export const GET_COMPANY_JOB = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.user;
   try {
-    const companyJob = await JobSchema.find({ posted_by: id })
+    const postedJob = await JobSchema.find({ posted_by: id })
       .populate('posted_by', 'company_name address logo company_id')
       .sort({ createdAt: -1 })
       .lean();
+
+    const companyJob = postedJob.map((job) => {
+      job['applicants_count'] = job.applicants.length;
+      return job;
+    });
     return res.success(companyJob, 201);
   } catch (error) {
     next(res.createError(500, '', errorHandler(error)));
@@ -67,11 +78,6 @@ export const UPDATE_JOB_APPLICATION_STATUS = async (req: Request, res: Response,
       'applicants.user',
       'email username firstname lastname',
     );
-    interface EmailList {
-      email: string;
-      firstname: string;
-      lastname: string;
-    }
 
     if (!job) {
       return next(res.createError(404, 'Job not found'));
@@ -120,6 +126,67 @@ export const UPDATE_JOB_APPLICATION_STATUS = async (req: Request, res: Response,
   }
 };
 
+export const GET_APPLICANT_RECOMMENDATIONS = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user.id; // Assuming this is the company's user ID
+  const jobId = req.params.jobId;
+
+  const recommender = new ContentBasedRecommender({
+    minScore: 0.1,
+    maxSimilarDocs: 100,
+    debug: false,
+    maxVectorSize: 100,
+  });
+
+  try {
+    const job = await JobSchema.findOne({ _id: jobId, posted_by: userId })
+      .populate('applicants.user', '-password')
+      .lean();
+
+    const allUsers = await UserSchema.find()
+      .select(
+        'header_bio skills.top_skills experience_level job_interest years_of_experience highest_education_level address.country',
+      )
+      .lean();
+
+    if (job) {
+      const applicants = allUsers.map((user, index) => {
+        const skills = user?.skills?.top_skills.map((skill) => skill.name);
+        return {
+          id: `${index}`,
+          content: `${user?.header_bio} ${skills?.join(' ')} ${user?.experience_level} ${user?.job_interest} ${user?.years_of_experience} ${user?.highest_education_level} ${user?.address.country}`,
+        };
+      });
+
+      const company = await CompanySchema.findById(userId);
+      const currentJobFn = () => {
+        const skills = job.required_skills.map((skill) => skill.name);
+        if (applicants && applicants.length > 0) {
+          return {
+            id: `${applicants.length + 1 ?? 1}`,
+            content: `${job.job_title} ${skills.join(' ')} ${job.experience_level} ${job.job_location_type}  ${company?.address.country}`,
+          };
+        } else {
+          return {
+            id: '1',
+            content: `${job.job_title} ${skills.join(' ')} ${job.experience_level} ${job.job_location_type} ${job.job_type}`,
+          };
+        }
+      };
+
+      const currentJob = currentJobFn();
+      applicants.push(currentJob);
+      recommender.train(applicants);
+
+      const matchedApplicants = recommender.getSimilarDocuments(currentJob.id);
+      const topApplicants = matchedApplicants.map((app) => allUsers[app.id]);
+      if (topApplicants.length > 0) return res.success(topApplicants);
+      else return res.success(job.applicants);
+    } else return next(res.error.NotFound('job not found'));
+  } catch (error) {
+    return next(res.createError(500, '', errorHandler(error)));
+  }
+};
+
 export const GET_JOB_APPLICANTS = async (req: Request, res: Response, next: NextFunction) => {
   const userId = req.user.id; // Assuming this is the company's user ID
   const jobId = req.params.jobId;
@@ -133,7 +200,7 @@ export const GET_JOB_APPLICANTS = async (req: Request, res: Response, next: Next
 
     if (job) {
       const applicants = job?.applicants.map(({ user }, index) => {
-        const skills = user?.skills.top_skills.map((skill) => skill.name);
+        const skills = user?.skills?.top_skills.map((skill) => skill.name);
         return {
           id: `${index}`,
           content: `${user?.header_bio} ${skills?.join(' ')} ${user?.experience_level} ${user?.job_interest} ${user?.years_of_experience} ${user?.highest_education_level} ${user?.address.country}`,
@@ -513,8 +580,8 @@ export const GET_SIMILAR_JOBS = async (req: Request, res: Response, next: NextFu
       maxVectorSize: 100,
       debug: false,
     });
-    const allJobs = await JobSchema.find().lean();
-    const otherJobs = await JobSchema.find({ _id: { $ne: new Types.ObjectId(jobId) } })
+    const allJobs = await JobSchema.find({ job_status: 'open' }).lean();
+    const otherJobs = await JobSchema.find({ _id: { $ne: new Types.ObjectId(jobId) }, job_status: 'open' })
       .lean()
       .sort({ createdAt: -1 })
       .limit(9);
@@ -569,7 +636,7 @@ export const GET_JOB_RECOMMENDATIONS = async (req: Request, res: Response, next:
     });
 
     const currentUser = () => {
-      const skills = user?.skills.top_skills.map((skill) => skill.name);
+      const skills = user?.skills?.top_skills.map((skill) => skill.name);
       return {
         id: `${aggregatedJobs.length}`,
         content: `${user?.header_bio} ${user?.skills?.stack} ${skills?.join(' ')} ${user?.experience_level} ${user?.job_interest} ${user?.years_of_experience} ${user?.highest_education_level} ${user?.address.country}`,
