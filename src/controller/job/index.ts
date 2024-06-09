@@ -144,7 +144,7 @@ export const GET_APPLICANT_RECOMMENDATIONS = async (req: Request, res: Response,
 
     const allUsers = await UserSchema.find()
       .select(
-        'header_bio skills.top_skills experience_level job_interest years_of_experience highest_education_level address.country',
+        'header_bio skills.top_skills  skills.stack experience_level job_interest years_of_experience highest_education_level address.country',
       )
       .lean();
 
@@ -153,7 +153,7 @@ export const GET_APPLICANT_RECOMMENDATIONS = async (req: Request, res: Response,
         const skills = user?.skills?.top_skills.map((skill) => skill.name);
         return {
           id: `${index}`,
-          content: `${user?.header_bio} ${skills?.join(' ')} ${user?.experience_level} ${user?.job_interest} ${user?.years_of_experience} ${user?.highest_education_level} ${user?.address.country}`,
+          content: `${user?.header_bio} ${user.skills?.stack} ${skills?.join(' ')} ${user?.experience_level} ${user?.job_interest} ${user?.years_of_experience} ${user?.highest_education_level} ${user?.address.country}`,
         };
       });
 
@@ -203,7 +203,7 @@ export const GET_JOB_APPLICANTS = async (req: Request, res: Response, next: Next
         const skills = user?.skills?.top_skills.map((skill) => skill.name);
         return {
           id: `${index}`,
-          content: `${user?.header_bio} ${skills?.join(' ')} ${user?.experience_level} ${user?.job_interest} ${user?.years_of_experience} ${user?.highest_education_level} ${user?.address.country}`,
+          content: `${user?.header_bio} ${user.skills?.stack} ${skills?.join(' ')} ${user?.experience_level} ${user?.job_interest} ${user?.years_of_experience} ${user?.highest_education_level} ${user?.address.country}`,
         };
       });
 
