@@ -9,6 +9,7 @@ import JOB_ROUTE from './job';
 import COMPANY_ROUTE from './company';
 import PUBLIC_ROUTE from './public';
 import UTILS_ROUTE from './utils';
+import { SEND_JOB_RECOMMENDATIONS } from '../utils/agenda/send-job-recommendation';
 
 const app: Express = express();
 
@@ -18,6 +19,12 @@ app.use('/company', /*  #swagger.tags = ['Company'] */ AUTHENTICATE_USER, IS_COM
 app.use('/job', /*  #swagger.tags = ['Job'] */ AUTHENTICATE_USER, JOB_ROUTE);
 app.use('/utils', /*  #swagger.tags = ['Utils'] */ UTILS_ROUTE);
 app.use('/public', /*  #swagger.tags = ['Public'] */ PUBLIC_ROUTE);
+app.use(
+  '/test',
+  /*  #swagger.tags = ['Public'] */ async (req, res, next) => {
+    return res.success(await SEND_JOB_RECOMMENDATIONS());
+  },
+);
 
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerOutputFile));
 export default app;

@@ -13,7 +13,21 @@ export interface Applicant {
   interview_dates?: Date[];
   date_applied: Date;
 }
-
+type ExperienceLevel = 'intership' | 'entry' | 'junior' | 'mid' | 'senior' | 'expert';
+export interface JobRecommendationEmailData {
+  user: { id: string | Types.ObjectId; name: string; email: string };
+  job: {
+    id: string;
+    title: string;
+    url: string;
+    icon?: string | any;
+    company: string;
+    location?: string; // using optional because address?.country might not exist
+    experienceLevel: ExperienceLevel;
+    type: JobType;
+    locationType: JobLocationType;
+  }[];
+}
 interface ApplicationStatus {
   initialSubmission: 'submitted' | 'received';
   reviewProcess: 'processing' | 'under review' | 'background check' | 'reference check';
@@ -51,6 +65,6 @@ export interface JobInterface extends Document {
   job_location_type: JobLocationType;
   salary: Salary;
   job_status: 'open' | 'closed' | 'paused';
-  experience_level: 'intership' | 'entry' | 'junior' | 'mid' | 'senior' | 'expert';
+  experience_level: ExperienceLevel;
   required_skills: Skills[];
 }

@@ -8,7 +8,7 @@ const VerificationSchema = new Schema(
       ref: 'users',
     },
     verification_code: {
-      type: String,
+      type: Number,
       required: [true, 'verification code is required'],
     },
     expire_at: {
@@ -20,6 +20,4 @@ const VerificationSchema = new Schema(
   { timestamps: true },
 );
 
-const VerificationModel = model('user-verifications', VerificationSchema);
-
-export default VerificationModel;
+export const UserVerificationModel = model('user-verifications', VerificationSchema);

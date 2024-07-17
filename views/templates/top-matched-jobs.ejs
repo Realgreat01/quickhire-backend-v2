@@ -93,12 +93,12 @@
                 -moz-osx-font-smoothing: grayscale;
               "
             >
-              We’ve found exciting job opportunities matching your skills and career interests! Here’s a list
+              We’ve found exciting job opportunities matching your skills and career interests! <br/> Here’s a list
               of top positions currently available that you might find interesting:
             </p>
                 <% jobs.forEach(function(job) { %>
 
-             <a href="<%- job.url %>" class="text" style="text-decoration: none">
+             <a href="<%- job.url %>" class="text" style="text-decoration: none; margin-bottom: 10px; display: block;">
      
         <div style="width: 100%">
           <div
@@ -143,7 +143,7 @@
               "
             >
               <strong><%- job.title %> </strong>at <span class=""><%= job.company %></span> <br />
-             <div class="" style="margin: 4px 0;  color: #f43f5e; font-weight: 500;" >
+             <div class="" style="margin: 4px 0;  color: #7898ff; font-weight: 500;" >
                <span class="" style="text-transform: capitalize; font-size: 12px;border-radius: 12px;background-color: transparent;  padding: 3px 8px 3px 0px;  width: fit-content; "><%= job.locationType %></span>
               <span class="" style="text-transform: capitalize; font-size: 12px;border-radius: 12px; background-color: transparent; padding: 3px 8px;  width: fit-content;"><%= job.type %></span>
               <span class="" style="text-transform: capitalize; font-size: 12px;border-radius: 12px; background-color:transparent; padding: 3px 8px;  width: fit-content;"><%= job.experienceLevel %> Level</span>
@@ -168,6 +168,44 @@
         </div>
     </a>
     <% }) %>
+        <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 100%; text-align: center; 
+              margin-top: 20px;
+              margin-bottom: 20px">
+      <tbody>
+        <tr style="width: 100%">
+          <td>
+            <a href="https://www.quickhire.site/jobs" style="
+                         color: rgb(255, 255, 255);
+                        background-color:#023696;
+                        padding: 12px 34px 12px 34px;
+                        text-decoration: none;
+                        font-size: 14px;
+                        font-weight: 600;
+                        border-radius: 9999px;
+                        line-height: 100%;
+                        display: inline-block;
+                        max-width: 100%;
+                      " target="_blank"><span>
+                <!--[if mso
+                          ]><i style="letter-spacing: 34px; mso-font-width: -100%; mso-text-raise: 18" hidden
+                            >&nbsp;</i
+                          ><!
+                        [endif]-->
+              </span><span style="
+                          max-width: 100%;
+                          display: inline-block;
+                          line-height: 120%;
+                          mso-padding-alt: 0px;
+                          mso-text-raise: 9px;
+                        ">See All Jobs &nbsp;→</span><span>
+                <!--[if mso
+                          ]><i style="letter-spacing: 34px; mso-font-width: -100%" hidden>&nbsp;</i><!
+                        [endif]-->
+              </span></a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
             <p
               style="
                 font-size: 14px;
@@ -211,22 +249,22 @@
                 <a
                   href="mailto:QuickHire￼support@quickhire.com"
                   rel="noopener noreferrer nofollow"
-                  style="color: rgb(17, 24, 39); text-decoration: underline; font-weight: 500"
+                  style="color: rgb(17, 24, 39); text-decoration: none; font-weight: 500"
                   target="_blank"
-                  >QuickHire</a
+                  >QuickHire Jobs</a
                 ><br /><a
                   href="mailto:QuickHire￼support@quickhire.com"
                   rel="noopener noreferrer nofollow"
                   style="color: rgb(17, 24, 39); text-decoration: underline; font-weight: 500"
                   target="_blank"
-                  >support@quickhire.com</a
+                  >support@quickhire.site</a
                 ><br /><a
                   href="http://www.quickhire.com"
                   rel="noopener noreferrer nofollow"
                   style="color: rgb(17, 24, 39); text-decoration: underline; font-weight: 500"
                   target="_blank"
-                  >www.quickhire.com</a
-                ><br />+1 (123) 456-7890
+                  >www.quickhire.site</a
+                ><br />+234 706 221 5229
               </p>
             </blockquote>
           </td>

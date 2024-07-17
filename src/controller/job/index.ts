@@ -1,4 +1,4 @@
-import { HTML_TO_TEXT } from './../../utils';
+import { HELPER_FUNCTIONS } from './../../utils';
 import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import { CompanySchema, JobSchema, UserSchema } from '../../models';
@@ -250,7 +250,7 @@ export const GET_JOB_APPLICANT = async (req: Request, res: Response, next: NextF
     if (!job) return next(res.error.NotFound('job not found'));
 
     const applicantIndex = job.applicants.findIndex(
-      (applicant) => applicant.user._id.toString() === applicantId,
+      (applicant: any) => applicant?.user?._id.toString() === applicantId,
     );
     if (applicantIndex === -1) return next(res.error.NotFound('Applicant not found in this job'));
     return res.success(job.applicants[applicantIndex]);
@@ -354,6 +354,8 @@ export const GET_ALL_JOBS = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const GET_MATCHED_JOBS = async (req: Request, res: Response, next: NextFunction) => {
+  // for searching for jobs via query
+
   try {
     const recommender = new ContentBasedRecommender({
       minScore: 0.1,
@@ -398,7 +400,7 @@ export const GET_MATCHED_JOBS = async (req: Request, res: Response, next: NextFu
       return {
         id: `${index}`,
         content:
-          `${job.job_title} ${job.job_title} ${skills.join(' ')} ${job.experience_level} ${job.job_type}  ${job.job_location_type} ${HTML_TO_TEXT(job.job_description)}`.toLowerCase(),
+          `${job.job_title} ${job.job_title} ${skills.join(' ')} ${job.experience_level} ${job.job_type}  ${job.job_location_type} ${HELPER_FUNCTIONS.HTML_TO_TEXT(job.job_description)}`.toLowerCase(),
       };
     });
 
@@ -488,8 +490,8 @@ export const BOOKMARK_JOB = async (req: Request, res: Response, next: NextFuncti
     const job = await JobSchema.findById(jobId).lean();
 
     if (user && job) {
-      const alreadyBookmarked = user.bookmarked_jobs?.some(
-        (bookmarkedJob) => bookmarkedJob._id.toString() === jobId,
+      const alreadyBookmarked = user?.bookmarked_jobs?.some(
+        (bookmarkedJob: any) => bookmarkedJob?._id.toString() === jobId,
       );
 
       if (alreadyBookmarked) return next(res.error.Forbidden('Job already bookmarked'));
@@ -611,7 +613,7 @@ export const GET_SIMILAR_JOBS = async (req: Request, res: Response, next: NextFu
 };
 
 export const GET_JOB_RECOMMENDATIONS = async (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.user.id; // Assuming this is the company's user ID
+  const userId = req.user.id;
 
   const recommender = new ContentBasedRecommender({
     minScore: 0.01,

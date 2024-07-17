@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const IMAGE_TO_BASE64 = async (url: string) => {
+const IMAGE_TO_BASE64 = async (url: string) => {
   try {
     const response = await axios.get(url, { responseType: 'arraybuffer' });
     const base64 = Buffer.from(response.data, 'binary').toString('base64');
@@ -9,4 +9,8 @@ export const IMAGE_TO_BASE64 = async (url: string) => {
   } catch (error) {
     throw error;
   }
+};
+
+export const API_SERVICE = {
+  IMAGE_TO_BASE64,
 };

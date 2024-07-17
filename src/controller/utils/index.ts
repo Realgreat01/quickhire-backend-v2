@@ -1,13 +1,13 @@
 import { UserSchema, JobSchema, CompanySchema, EmailListSchema } from '../../models';
 import { NextFunction, Request, Response } from 'express';
 import errorHandler from '../../errors';
-import { IMAGE_TO_BASE64 } from '../../utils';
+import { API_SERVICE } from '../../utils';
 import { GET_ALL_COUNTRIES, GET_CITIES_BY_STATE_AND_COUNTRY, GET_STATES_BY_COUNTRY } from '../../services';
 
 export const CONVERT_IMAGE_BASE64_URL = async (req: Request, res: Response, next: NextFunction) => {
   const image = req.body.image_url;
   try {
-    const base64 = await IMAGE_TO_BASE64(image);
+    const base64 = await API_SERVICE.IMAGE_TO_BASE64(image);
     return res.success(base64);
   } catch (error) {
     next(res.createError(500, 'Error converting file', error));

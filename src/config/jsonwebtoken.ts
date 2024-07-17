@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { User } from '../interface';
+import { User } from '../types';
 
 const SIGN_TOKEN = async (data: object) => {
   if (process.env.ACCESS_TOKEN) return jwt.sign(data, process.env.ACCESS_TOKEN);

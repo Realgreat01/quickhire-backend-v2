@@ -60,7 +60,7 @@ export const GET_SIMILAR_USERS = async (req: Request, res: Response, next: NextF
         const education = user?.education.map((edu) => `${edu.institution} ${edu.course}`).join(' ');
         const skills = user?.skills?.top_skills.map(({ name }) => `${name}`).join(' ');
         return {
-          id: user._id,
+          id: user._id.toString(),
           content: `${user.username} ${user.header_bio} ${user.gender} ${experience} ${education} ${skills} ${user.address.country} ${user.firstname} ${user.lastname} ${user.skills?.stack} `,
         };
       });
@@ -70,7 +70,7 @@ export const GET_SIMILAR_USERS = async (req: Request, res: Response, next: NextF
         const education = user?.education.map((edu) => `${edu.institution} ${edu.course}`).join(' ');
         const skills = user?.skills?.top_skills.map(({ name }) => `${name}`).join(' ');
         return {
-          id: user._id,
+          id: user._id.toString(),
           content: `${user.username} ${user.header_bio} ${user.gender} ${experience} ${education} ${skills} ${user.address.country} ${user.firstname} ${user.lastname} ${user.skills?.stack} `,
         };
       };
@@ -80,11 +80,11 @@ export const GET_SIMILAR_USERS = async (req: Request, res: Response, next: NextF
       aggregateUsers.push(formattedUser);
       recommender.train(aggregateUsers);
       const matchedUsers = recommender.getSimilarDocuments(formattedUser.id);
-      const similarUsers = matchedUsers.map(({ id }) => users.find((user) => id === user._id));
+      const similarUsers = matchedUsers.map(({ id }) => users.find((user) => id === user._id.toString()));
       return res.success(similarUsers);
     } else throw Error('user not found');
   } catch (error) {
-    next(res.error.NotFound('user not found'));
+    return next(res.error.NotFound('user not found'));
   }
 };
 

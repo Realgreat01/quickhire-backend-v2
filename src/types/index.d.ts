@@ -1,15 +1,20 @@
-// import { User } from '../interface';
-
 import { CompanyInterface, TaxInformation } from './company';
-import { JobInterface, Salary, InterviewFeedback, JobDuration, Applicant } from './job';
+import {
+  JobInterface,
+  JobRecommendationEmailData,
+  Salary,
+  InterviewFeedback,
+  JobDuration,
+  Applicant,
+} from './job';
 import { SocialLinks, Skills } from './utils';
 import { UserInterface, BasicDetail, Notification, Education, Experience, Project, UserSkills } from './user';
 
-import ServerResponse from 'responseformatjson';
-import createHttpError from 'http-errors';
+import type ServerResponse from 'responseformatjson';
+import type createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 
-interface User {
+export interface User {
   id: Types.ObjectId | string;
   _id?: Types.ObjectId | string;
   username?: string;
@@ -52,6 +57,18 @@ declare module 'socket.io' {
   }
 }
 
+interface Job {
+  id: string;
+  title: string;
+  url: string;
+  icon: string;
+  company: string;
+  location?: string; // using optional because address?.country might not exist
+  experienceLevel: string;
+  type: string;
+  locationType: string;
+}
+
 export {
   BasicDetail,
   Notification,
@@ -70,6 +87,7 @@ export {
 
   //
   JobInterface,
+  JobRecommendationEmailData,
   Salary,
   Applicant,
   InterviewFeedback,

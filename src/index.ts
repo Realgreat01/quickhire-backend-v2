@@ -26,20 +26,7 @@ const homeDir = path.join(__dirname, '..');
 
 instrument(io, { auth: false });
 
-const allowedOrigins = [
-  'http://www.quickhire.site',
-  'https://www.quickhire.site',
-
-  'http://quickhire.site',
-  'https://quickhire.site',
-
-  'https://quickhire.vercel.app',
-  'https://vercel.app',
-
-  'http://localhost:3000',
-  'http://localhost:5173',
-  '*',
-];
+const allowedOrigins = '*';
 
 // CORS options
 const corsOptions = {
@@ -50,14 +37,14 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-  // allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   // optionsSuccessStatus: 200, // Some legacy browsers choke on 204
 };
 
 // Enable CORS with the above options
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(helmet({}));
@@ -87,6 +74,127 @@ app.get('/api', (req: Request, res: Response, next) => {
   return res.success({}, 'App is running ✈️✈️🪐🌟');
 });
 
+app.get('/template', (req: Request, res: Response, next) => {
+  /* #swagger.ignore = true */
+
+  const data = {
+    user: {
+      id: '663323c724e1e8bcefdadff5',
+      name: 'Samson Ikuomenisan',
+      email: 'samson.ikuomenisan@gmail.com',
+    },
+    job: [
+      {
+        id: '666212fb4ae9bc1a7afd9291',
+        title: 'Lead Engineer ',
+        url: 'https://www.quickhire.site/jobs/666212fb4ae9bc1a7afd9291',
+        icon: 'https://res.cloudinary.com/dirmjuvyr/image/upload/v1716651066/quickhire/l6mrcx2ggnmvg8qwjlg0.svg',
+        company: 'Quickhire Incorporated',
+        location: 'Nigeria',
+        experienceLevel: 'expert',
+        type: 'Full-Time',
+        locationType: 'remote',
+      },
+      {
+        id: '66503965924a32162bf4850b',
+        title: 'Frontend Developer',
+        url: 'https://www.quickhire.site/jobs/66503965924a32162bf4850b',
+        icon: 'https://res.cloudinary.com/dirmjuvyr/image/upload/v1716651066/quickhire/l6mrcx2ggnmvg8qwjlg0.svg',
+        company: 'Quickhire Incorporated',
+        location: 'Nigeria',
+        experienceLevel: 'mid',
+        type: 'Full-Time',
+        locationType: 'remote',
+      },
+      {
+        id: '664285696b9377361d6d0ba2',
+        title: 'Fullstack Developer',
+        url: 'https://www.quickhire.site/jobs/664285696b9377361d6d0ba2',
+        icon: 'https://res.cloudinary.com/dirmjuvyr/image/upload/v1716651066/quickhire/l6mrcx2ggnmvg8qwjlg0.svg',
+        company: 'Quickhire Incorporated',
+        location: 'Nigeria',
+        experienceLevel: 'mid',
+        type: 'Full-Time',
+        locationType: 'remote',
+      },
+      {
+        id: '663944e78b18e2d536b15161',
+        title: 'Frontend Developer',
+        url: 'https://www.quickhire.site/jobs/663944e78b18e2d536b15161',
+        icon: 'https://res.cloudinary.com/dirmjuvyr/image/upload/v1716651066/quickhire/l6mrcx2ggnmvg8qwjlg0.svg',
+        company: 'Quickhire Incorporated',
+        location: 'Nigeria',
+        experienceLevel: 'senior',
+        type: 'Part-Time',
+        locationType: 'onsite',
+      },
+      {
+        id: '6675f79f4a1cc4329a0ed7b2',
+        title: 'IT Specialist ',
+        url: 'https://www.quickhire.site/jobs/6675f79f4a1cc4329a0ed7b2',
+        icon: 'https://res.cloudinary.com/dirmjuvyr/image/upload/v1716651066/quickhire/l6mrcx2ggnmvg8qwjlg0.svg',
+        company: 'Quickhire Incorporated',
+        location: 'Nigeria',
+        experienceLevel: 'expert',
+        type: 'Full-Time',
+        locationType: 'remote',
+      },
+      {
+        id: '664290093a918da2b37fcc6d',
+        title: 'Senior Backend Engineer ',
+        url: 'https://www.quickhire.site/jobs/664290093a918da2b37fcc6d',
+        icon: 'https://res.cloudinary.com/dirmjuvyr/image/upload/v1716651066/quickhire/l6mrcx2ggnmvg8qwjlg0.svg',
+        company: 'Quickhire Incorporated',
+        location: 'Nigeria',
+        experienceLevel: 'senior',
+        type: 'Full-Time',
+        locationType: 'hybrid',
+      },
+      {
+        id: '664360fd02eb7fe6e3ba17ef',
+        title: 'DevRel Engineer',
+        url: 'https://www.quickhire.site/jobs/664360fd02eb7fe6e3ba17ef',
+        icon: 'https://res.cloudinary.com/dirmjuvyr/image/upload/v1716651066/quickhire/l6mrcx2ggnmvg8qwjlg0.svg',
+        company: 'Quickhire Incorporated',
+        location: 'Nigeria',
+        experienceLevel: 'senior',
+        type: 'Full-Time',
+        locationType: 'remote',
+      },
+      {
+        id: '663944c88b18e2d536b1515a',
+        title: 'Fullstack Engineer',
+        url: 'https://www.quickhire.site/jobs/663944c88b18e2d536b1515a',
+        icon: 'https://res.cloudinary.com/dirmjuvyr/image/upload/v1716651066/quickhire/l6mrcx2ggnmvg8qwjlg0.svg',
+        company: 'Quickhire Incorporated',
+        location: 'Nigeria',
+        experienceLevel: 'senior',
+        type: 'Part-Time',
+        locationType: 'hybrid',
+      },
+      {
+        id: '66394230dd6ce6a01290ef54',
+        title: 'DevOps Engineer',
+        url: 'https://www.quickhire.site/jobs/66394230dd6ce6a01290ef54',
+        icon: 'https://res.cloudinary.com/dirmjuvyr/image/upload/v1716651066/quickhire/l6mrcx2ggnmvg8qwjlg0.svg',
+        company: 'Quickhire Incorporated',
+        location: 'Nigeria',
+        experienceLevel: 'senior',
+        type: 'Part-Time',
+        locationType: 'remote',
+      },
+    ],
+  };
+  return res.render('templates/top-matched-jobs', {
+    jobs: data.job,
+    user: {
+      id: '663323c724e1e8bcefdadff5',
+      name: 'Samson Ikuomenisan',
+      email: 'samson.ikuomenisan@gmail.com',
+    },
+  });
+});
+
 app.use('', (req: Request, res: Response, next: NextFunction) => {
   return next(
     res.createError(404, 'PATH DOES NOT EXIST', { path: req.path, params: req.params, method: req.method }),
@@ -105,10 +213,11 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 mongoose.set('strictQuery', true);
+
 const mongooseInstance = mongoose.connect(process.env.MONGO_URI || '');
 mongooseInstance
   .then(() => {
-    server.listen(PORT, async () => {
+    app.listen(PORT, async () => {
       console.log({
         database: 'connected to database successfully',
         server: 'listening on ' + PORT,

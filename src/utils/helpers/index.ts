@@ -1,6 +1,6 @@
 import { convert } from 'html-to-text';
 
-export const FILTER_EMPTY_VALUES = <T extends object>(obj: T): T => {
+const FILTER_EMPTY_VALUES = <T extends object>(obj: T): T => {
   const filtered: Partial<T> = {};
   Object.keys(obj).forEach((key) => {
     const k = key as keyof T;
@@ -11,6 +11,11 @@ export const FILTER_EMPTY_VALUES = <T extends object>(obj: T): T => {
   return filtered as T;
 };
 
-export const HTML_TO_TEXT = (html: string) => {
+const HTML_TO_TEXT = (html: string) => {
   return convert(html, { preserveNewlines: false }).replace(/\r?\n|\r/g, ' ');
+};
+
+export const HELPER_FUNCTIONS = {
+  FILTER_EMPTY_VALUES,
+  HTML_TO_TEXT,
 };

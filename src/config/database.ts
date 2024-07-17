@@ -1,5 +1,5 @@
 import { UserSchema } from '../models';
-import { UserInterface } from '../interface/';
+import { UserInterface } from '../types';
 import { Types } from 'mongoose';
 
 export function LIMIT_ARRAY(limit: number) {
