@@ -10,15 +10,13 @@ export const REGISTER_USER = async (req: Request, res: Response, next: NextFunct
     const hashedPassword = await JWT.HASHED_PASSWORD(password);
 
     try {
-      if (process.env.ACCESS_TOKEN) {
-        const User = new UserSchema({ ...req.body, password: hashedPassword });
-        const newUser = await User.save();
-        const token = await JWT.SIGN_ACCESS_TOKEN({ id: newUser.id, status: newUser.status });
-        return res.success(
-          { username: newUser.username, token, status: newUser.status },
-          'user registered successfully',
-        );
-      } else return next(res.error.BadGateway());
+      const User = new UserSchema({ ...req.body, password: hashedPassword });
+      const newUser = await User.save();
+      const token = await JWT.SIGN_ACCESS_TOKEN({ id: newUser.id, status: newUser.status });
+      return res.success(
+        { username: newUser.username, token, status: newUser.status },
+        'user registered successfully',
+      );
     } catch (err) {
       return next(res.createError(400, 'Error registering user', errorHandler(err)));
     }
@@ -39,7 +37,7 @@ export const LOGIN_USER = async (req: Request, res: Response, next: NextFunction
       } else return next(res.error.BadRequest('email or password not correct!'));
     } else return next(res.error.BadRequest('email or password not correct!'));
   } catch (error) {
-    console.log(errorHandler(error));
+    // console.log(errorHandler(error));
   }
 };
 

@@ -1,3 +1,4 @@
+import { JWT } from './../utils';
 import { Request, Response, NextFunction } from 'express';
 import { VERIFY_TOKEN } from '../config';
 import * as dotenv from 'dotenv';
@@ -12,11 +13,11 @@ const AUTHENTICATE_USER = async (req: Request, res: Response, next: NextFunction
   /* #swagger.security = [{ "bearerAuth": [] }] */
 
   const { authorization } = req.headers;
-  if (authorization && process.env.ACCESS_TOKEN) {
+  if (authorization) {
     if (authorization.startsWith('Bearer')) {
       const token = authorization.split(' ')[1];
       try {
-        req.user = VERIFY_TOKEN(token);
+        req.user = JWT.VERIFY_ACCESS_TOKEN(token);
         return next();
       } catch (error) {
         return next(res.createError(400, 'message', { user: 'Invalid Token' }));
@@ -30,11 +31,11 @@ export const CHECK_AUTHENTICATED_USER = async (req: Request, res: Response, next
   /* #swagger.security = [{ "bearerAuth": [] }] */
 
   const { authorization } = req.headers;
-  if (authorization && process.env.ACCESS_TOKEN) {
+  if (authorization) {
     if (authorization.startsWith('Bearer')) {
       const token = authorization.split(' ')[1];
       try {
-        req.user = VERIFY_TOKEN(token);
+        req.user = JWT.VERIFY_ACCESS_TOKEN(token);
         return next();
       } catch (error) {
         return next();

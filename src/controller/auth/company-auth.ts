@@ -1,19 +1,17 @@
-import jwt from 'jsonwebtoken';
 import { NextFunction, Request, Response } from 'express';
 import { isEmail } from 'validator';
-import bcrypt from 'bcrypt';
-require('dotenv').config();
-
 import errorHandler from '../../errors';
 import { CompanySchema } from '../../models/';
 import { IncrementSchema } from '../../models/';
-import { COMPARE_PASSWORD, HASHED_PASSWORD, SIGN_TOKEN } from '../../config';
+import { JWT } from '../../utils';
+
+require('dotenv').config();
 
 export const REGISTER_COMPANY = async (req: Request, res: Response, next: NextFunction) => {
   let password = req.body.password;
   if (!password) password = '';
   if (password.length > 5) {
-    const hashedPassword = await HASHED_PASSWORD(password);
+    const hashedPassword = await JWT.HASHED_PASSWORD(password);
     const count = (await IncrementSchema.find()).length;
 
     // Generating Unique ID
@@ -31,7 +29,7 @@ export const REGISTER_COMPANY = async (req: Request, res: Response, next: NextFu
     try {
       const createdCompany = await Company.save();
       const new_company = createdCompany;
-      const token = await SIGN_TOKEN({ id: new_company.id, status: new_company.status });
+      const token = await JWT.SIGN_ACCESS_TOKEN({ id: new_company.id, status: new_company.status });
       const count = (await IncrementSchema.find()).length;
       await IncrementSchema.create({ count });
       const { company_name, company_id, email, status } = new_company;
@@ -57,10 +55,10 @@ export const LOGIN_COMPANY = async (req: Request, res: Response, next: NextFunct
 
   const company = await CompanySchema.findOne(data);
   if (company) {
-    const passwordIsCorrect = await COMPARE_PASSWORD(password, company.password);
+    const passwordIsCorrect = await JWT.COMPARE_PASSWORD(password, company.password);
     if (passwordIsCorrect) {
       const { id, status } = company;
-      const token = await SIGN_TOKEN({ id, status });
+      const token = await JWT.SIGN_ACCESS_TOKEN({ id, status });
       return res.success({ token, company_id: company.company_id });
     } else next(res.error.NotFound('invalid credentials!'));
   } else next(res.error.NotFound('invalid credentials!'));
