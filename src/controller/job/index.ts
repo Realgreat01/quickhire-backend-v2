@@ -380,11 +380,9 @@ export const GET_MATCHED_JOBS = async (req: Request, res: Response, next: NextFu
 
       job['is_new'] = isLessThan7DaysAgo;
       if (req.user) {
-        const isApplicant = job.applicants.some(
-          (applicant: any) => applicant.user.toString() === req.user.id,
-        );
-
-        job['is_applicant'] = isApplicant;
+        if (job.applicants.some((applicant: any) => applicant.user._id.toString() === req.user.id)) {
+          job['is_applicant'] = true;
+        } else job['is_applicant'] = false;
       } else job['is_applicant'] = false;
       return job;
     });
@@ -432,7 +430,7 @@ export const GET_SINGLE_JOB = async (req: Request, res: Response, next: NextFunc
       const dateToCheck = DateTime.fromISO(new Date(job.posted_on).toISOString());
       const now = DateTime.local();
       const isLessThan7DaysAgo = dateToCheck >= now.minus({ days: 7 });
-
+      job['applicants_count'] = job.applicants.length;
       job['is_new'] = isLessThan7DaysAgo;
 
       if (req.user) {
